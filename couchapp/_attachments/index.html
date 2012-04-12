@@ -69,7 +69,7 @@
 			mode: "time", 
 			tickFormatter: function(val, axis) {
 				var d = new Date(val);
-				return d.toLocaleTimeString();
+				return d.toLocaleTimeString().substr(0,5);
 			}
 		} });
 	});
