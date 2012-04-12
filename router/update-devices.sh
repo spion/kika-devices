@@ -1,2 +1,3 @@
-userpasshost=`cat .config`
-echo arp -i eth1 x-pipe-x curl http://$userpasshost/kika-devices/_design/couchapp/_update/devices --data-binary @- -H"Content-Type:text/plain"
+iface=`cat .config-iface`
+userpasshost=`cat .config-db`
+arp -i $iface | curl http://$userpasshost/kika-devices/_design/couchapp/_update/devices --data-binary @- -H"Content-Type:text/plain"

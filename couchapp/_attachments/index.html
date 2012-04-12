@@ -18,7 +18,7 @@
 <div style="width:600px; height:150px;" id="plot">
 </div>
 
-<p>Крстени уреди</p>
+<p>Именувани уреди</p>
 <ul id="devices">
 </ul>
 
@@ -65,7 +65,13 @@
 			var item = json.rows[k].doc;
 			plotData.push([item._id, item.count]);
 		}
-		$.plot($("#plot"), [plotData], { xaxis: { mode: "time" } });
+		$.plot($("#plot"), [plotData], { xaxis: { 
+			mode: "time", 
+			tickFormatter: function(val, axis) {
+				var d = new Date(val);
+				return d.toLocaleTimeString();
+			}
+		} });
 	});
 </script>
 
