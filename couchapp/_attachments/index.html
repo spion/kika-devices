@@ -3,7 +3,27 @@
 <head>
 <title>Уреди во Хаклаб Кика</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" href="style/main.css" type="text/css">
+<style type="text/css">
+#toplist div.item {
+	position:relative;
+	border: solid 1px #ccc;
+}
+#toplist div.item div.prog {
+	position:absolute;
+	top:0;
+	left:0;
+	height:100%;
+	background-color:#eeb;
+}
+#toplist div.item div.name {
+	padding:5px;
+}
+
+#toplist {
+	width:600px;
+}
+
+</style>
 </head>
 <body>
 <div id="account"></div>
@@ -22,6 +42,10 @@
 <ul id="devices">
 </ul>
 
+<p>Топ листа (7 дена)</p>
+<div id="toplist">
+
+</div>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
 <script type="text/javascript">
@@ -72,6 +96,28 @@
 				return d.toLocaleTimeString().substr(0,5);
 			}
 		} });
+		
+		var topDevices = {};
+		for (var k = 0; k < json.rows.length; ++k) {
+			var item = json.rows[k].doc;
+			for (var j = 0; j < item.devices.length; ++j) {
+				topDevices[item.devices[j]] = (topDevices[item.devices[j]]? topDevices[item.devices[j]]:0) + 5*60*1000;
+			}
+		}
+		var topList = [], maxDur = 0;
+		for (var key in topDevices) {
+			maxDur = Math.max(topDevices[key], maxDur);
+			topList.push({name: key, duration: topDevices[key]});
+		}
+		topList.sort(function(a, b) { return a.duration - b.duration; });
+		topList.reverse();
+		$("#toplist").html("");
+		for (var k = 0; k < topList.length; ++k) {
+			var tlitem = $("<div></div>").addClass("item")
+			$("<div></div>").addClass("prog").css({width: (100 * topList[k].duration / maxDur) + '%'}).appendTo(tlitem);
+			$("<div></div>").addClass("name").html(topList[k].name + " " + getDuration(topList[k].duration)).appendTo(tlitem);
+			tlitem.appendTo($("#toplist"));
+		}
 	});
 </script>
 
