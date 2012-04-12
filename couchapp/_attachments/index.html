@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Уреди во Хаклаб Кика</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="style/main.css" type="text/css">
+</head>
+<body>
+<div id="account"></div>
+
+<h1>Уреди во Хаклаб Кика</h1>
+
+<h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
+
+<p>Хаклабот беше <span id="status">напуштен</span> пред <span id="status-dur">0m</span> 
+
+<p>Историја</p>
+<div style="width:600px; height:150px;" id="plot">
+</div>
+
+<p>Крстени уреди</p>
+<ul id="devices">
+</ul>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+<script type="text/javascript">
+	var isPlural = function(num) {
+		return (num % 10 != 1 || num % 100 == 11);
+	}
+	var getDuration = function(dur) {
+		var minDur = Math.ceil(dur / 1000 / 60);
+		var m = minDur % 60;
+		var h = Math.floor(minDur / 60);
+		var ret = [];
+		if (h > 0) ret.push(h + "h");
+		ret.push(m + "m");
+		return ret.join(" ");
+	}
+	$.getJSON("/kika-devices/_all_docs", 
+		{ limit: 12*24*7, descending: true, startkey: '"9"', endkey:'"1"', include_docs:true },
+	function(json) {
+		var current = json.rows[0].doc;
+		$("#count").html(current.count);
+		$("#status").html(current.count?"отворен":"напуштен");
+		var lastDate;
+		for (var k = 1; k < json.rows.length; ++k) {
+			var item = json.rows[k].doc;
+			lastDate = item._id;
+			if ((!!item.count) != (!!current.count)) {
+				$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
+				break;
+			} 
+			$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
+		}		
+
+		if (isPlural(current.count)) { $("#plural").show(); }
+		else { $("#plural").hide(); }
+		$("#devices").html("");
+		for (var k = 0; k < current.devices.length; ++k) {
+			$("<li></li>").html(current.devices[k]).appendTo($("#devices"));
+		}
+		var plotData = [];
+		for (var k = json.rows.length - 1; k >= 0 && k > json.rows.length - 24 * 15; --k) {
+			var item = json.rows[k].doc;
+			plotData.push([item._id, item.count]);
+		}
+		$.plot($("#plot"), [plotData], { xaxis: { mode: "time" } });
+	});
+</script>
+
+</body>
+</html>
