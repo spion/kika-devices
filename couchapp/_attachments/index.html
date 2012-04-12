@@ -4,21 +4,35 @@
 <title>Уреди во Хаклаб Кика</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <style type="text/css">
+body {
+	font-family: Verdana;
+	font-size: 14px;
+}
 #toplist div.item {
 	position:relative;
 	border: solid 1px #ccc;
+	height:1.75em;
+	width:100%;
+	margin: 0.5em;
 }
 #toplist div.item div.prog {
 	position:absolute;
 	top:0;
 	left:0;
 	height:100%;
-	background-color:#eeb;
+	background-color:#f5f5cc;
 }
 #toplist div.item div.name {
-	padding:5px;
+	position:absolute;
+	top:0.25em;
+	left:0.5em;
 }
 
+#toplist div.item div.time {
+	position:absolute;
+	top:0.25em;
+	right:0.5em;
+}
 #toplist {
 	width:600px;
 }
@@ -26,8 +40,7 @@
 </style>
 </head>
 <body>
-<div id="account"></div>
-
+<div style="width:620px; margin:auto;">
 <h1>Уреди во Хаклаб Кика</h1>
 
 <h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
@@ -46,19 +59,34 @@
 <div id="toplist">
 
 </div>
+
+</div>
+
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
 <script type="text/javascript">
+
+	function zeroFill( number, width )
+	{
+  		width -= number.toString().length;
+  		if ( width > 0 )
+ 		{
+    			return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+  		}
+  		return number;
+	}
+
 	var isPlural = function(num) {
 		return (num % 10 != 1 || num % 100 == 11);
 	}
+
 	var getDuration = function(dur) {
 		var minDur = Math.ceil(dur / 1000 / 60);
 		var m = minDur % 60;
 		var h = Math.floor(minDur / 60);
 		var ret = [];
 		if (h > 0) ret.push(h + "h");
-		ret.push(m + "m");
+		ret.push(zeroFill(m,2) + "m");
 		return ret.join(" ");
 	}
 	$.getJSON("/kika-devices/_all_docs", 
@@ -115,11 +143,11 @@
 		for (var k = 0; k < topList.length; ++k) {
 			var tlitem = $("<div></div>").addClass("item")
 			$("<div></div>").addClass("prog").css({width: (100 * topList[k].duration / maxDur) + '%'}).appendTo(tlitem);
-			$("<div></div>").addClass("name").html(topList[k].name + " " + getDuration(topList[k].duration)).appendTo(tlitem);
+			$("<div></div>").addClass("name").html(topList[k].name).appendTo(tlitem);
+			$("<div></div>").addClass("time").html(getDuration(topList[k].duration)).appendTo(tlitem);
 			tlitem.appendTo($("#toplist"));
 		}
 	});
 </script>
-
 </body>
 </html>
