@@ -113,10 +113,11 @@ body {
 			$("<li></li>").html(current.devices[k]).appendTo($("#devices"));
 		}
 		var plotData = [];
-		for (var k = json.rows.length - 1; k >= 0 && k > json.rows.length - 24 * 15; --k) {
+		for (var k = 0; k < json.rows.length && json.rows[0].doc._id - json.rows[k].doc._id < 24*60*60*1000; ++k) {
 			var item = json.rows[k].doc;
 			plotData.push([item._id, item.count]);
 		}
+		plotData.reverse();
 		$.plot($("#plot"), [plotData], { xaxis: { 
 			mode: "time", 
 			tickFormatter: function(val, axis) {
