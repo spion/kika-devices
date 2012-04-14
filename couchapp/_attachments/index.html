@@ -84,7 +84,7 @@ body {
 		var plotData = [];
 		for (var k = 0; k < json.rows.length && json.rows[0].doc._id - json.rows[k].doc._id < 24*60*60*1000; ++k) {
 			var item = json.rows[k].doc;
-			plotData.push([item._id, item.devices.length]);
+			plotData.push([item._id, item.count]);
 		}
 		plotData.reverse();
 		$.plot($("#plot"), [plotData], { xaxis: { 
