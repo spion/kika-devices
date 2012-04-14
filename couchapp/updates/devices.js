@@ -1,7 +1,7 @@
 function(doc, req) {
 	var filteredNames = ['dvoarak'],
 	    filteredMacs  = [],  
-	    deviceCount = 0;
+	    deviceCount = 0, deviceK = 0;
 	var rip = /^([0-9]{1,3}\.){3}[0-9]{1,3}$/;
 	var arplines = req.body.split("\n"), deviceNames = [];
 	for (var k = 1; k < arplines.length; ++k) {
@@ -13,7 +13,8 @@ function(doc, req) {
 		  || filteredMacs.indexOf(deviceMac) > -1) continue;
 		++deviceCount;
 		if (!rip.test(deviceName)) {
-			deviceNames.push(deviceName);
+			//deviceNames.push(deviceName);
+			deviceNames.push("device" + (++deviceK));
 		}
 	}
 	var json = {

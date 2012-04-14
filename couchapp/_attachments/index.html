@@ -8,34 +8,7 @@ body {
 	font-family: Verdana;
 	font-size: 14px;
 }
-#toplist div.item {
-	position:relative;
-	border: solid 1px #ccc;
-	height:1.75em;
-	width:100%;
-	margin: 0.5em;
-}
-#toplist div.item div.prog {
-	position:absolute;
-	top:0;
-	left:0;
-	height:100%;
-	background-color:#f5f5cc;
-}
-#toplist div.item div.name {
-	position:absolute;
-	top:0.25em;
-	left:0.5em;
-}
 
-#toplist div.item div.time {
-	position:absolute;
-	top:0.25em;
-	right:0.5em;
-}
-#toplist {
-	width:600px;
-}
 
 </style>
 </head>
@@ -51,7 +24,7 @@ body {
 <div style="width:600px; height:150px;" id="plot">
 </div>
 
-<p>Именувани уреди</p>
+<p>Присутни уреди</p>
 <ul id="devices">
 </ul>
 
@@ -115,7 +88,7 @@ body {
 		var plotData = [];
 		for (var k = 0; k < json.rows.length && json.rows[0].doc._id - json.rows[k].doc._id < 24*60*60*1000; ++k) {
 			var item = json.rows[k].doc;
-			plotData.push([item._id, item.count]);
+			plotData.push([item._id, item.devices.length]);
 		}
 		plotData.reverse();
 		$.plot($("#plot"), [plotData], { xaxis: { 
@@ -126,28 +99,6 @@ body {
 			}
 		} });
 		
-		var topDevices = {};
-		for (var k = 0; k < json.rows.length; ++k) {
-			var item = json.rows[k].doc;
-			for (var j = 0; j < item.devices.length; ++j) {
-				topDevices[item.devices[j]] = (topDevices[item.devices[j]]? topDevices[item.devices[j]]:0) + 5*60*1000;
-			}
-		}
-		var topList = [], maxDur = 0;
-		for (var key in topDevices) {
-			maxDur = Math.max(topDevices[key], maxDur);
-			topList.push({name: key, duration: topDevices[key]});
-		}
-		topList.sort(function(a, b) { return a.duration - b.duration; });
-		topList.reverse();
-		$("#toplist").html("");
-		for (var k = 0; k < topList.length; ++k) {
-			var tlitem = $("<div></div>").addClass("item")
-			$("<div></div>").addClass("prog").css({width: (100 * topList[k].duration / maxDur) + '%'}).appendTo(tlitem);
-			$("<div></div>").addClass("name").html(topList[k].name).appendTo(tlitem);
-			$("<div></div>").addClass("time").html(getDuration(topList[k].duration)).appendTo(tlitem);
-			tlitem.appendTo($("#toplist"));
-		}
 	});
 </script>
 </body>
