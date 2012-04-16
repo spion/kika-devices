@@ -8,33 +8,9 @@
 				font-family: Verdana;
 				font-size: 14px;
 			}
-			#toplist div.item {
-				position:relative;
-				border: solid 1px #ccc;
-				height:1.75em;
-				width:100%;
-				margin: 0.5em;
-			}
-			#toplist div.item div.prog {
-				position:absolute;
-				top:0;
-				left:0;
-				height:100%;
-				background-color:#f5f5cc;
-			}
-			#toplist div.item div.name {
-				position:absolute;
-				top:0.25em;
-				left:0.5em;
-			}
-
-			#toplist div.item div.time {
-				position:absolute;
-				top:0.25em;
-				right:0.5em;
-			}
-			#toplist {
-				width:600px;
+			#names li a {
+				font-size: 18px;
+				margin-left: 10px;
 			}
 
 
@@ -53,15 +29,11 @@
 			</div>
 
 			<p>Присутни</p>
-			<ul id="devices">
+			<ul id="names">
 			</ul>
 
-			<p>Топ листа (7 дена)</p>
-			<div id="toplist">
-				
-			</div>
-			<p>Сакаш да учествуваш во топ листата и во листата на присутни? Дај ја твојата MAC адреса и име на spion додека си во хаклаб
-			за да бидеш додаден. MAC адресата можеш да ја добиеш со </p>
+			<p>Сакаш да учествуваш во листата на присутни? <a href="/config">Логирај се преку Twitter</a> и додај ги твоите MAC адреси. 
+			MAC адресата можеш да ја добиеш со </p>
 			<pre>ifconfig | grep HWaddr</pre>
 
 		</div>
@@ -94,13 +66,13 @@ var getDuration = function(dur) {
 	return ret.join(" ");
 }
 $.getJSON("/status", { limit: 12*24*7 }, function(json) {
-		var current = json.rows[0].doc;
+		var current = json.counters[0];
 		$("#count").html(current.count);
 		$("#status").html(current.count?"отворен":"напуштен");
 		var lastDate;
-		for (var k = 1; k < json.rows.length; ++k) {
-			var item = json.rows[k].doc;
-			lastDate = item._id;
+		for (var k = 1; k < json.counters.length; ++k) {
+			var item = json.counters[k];
+			lastDate = item.time;
 			if ((!!item.count) != (!!current.count)) {
 				$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
 				break;
@@ -111,18 +83,19 @@ $.getJSON("/status", { limit: 12*24*7 }, function(json) {
 		if (isPlural(current.count)) { $("#plural").show(); }
 		else { $("#plural").hide(); }
 
-		$("#devices").html("");
-		for (var k = 0; k < current.devices.length; ++k) {
-			$("<li></li>").html(current.devices[k]).appendTo($("#devices"));
+		$("#names").html("");
+		for (var k = 0; k < json.present.length; ++k) {
+			var liItem = $("<li></li>");
+			$("<img />").attr({src: json.present[k].pic}).css({'vertical-align': 'middle'}).appendTo(liItem);
+			$("<a></a>").attr({href: 'http://twitter.com/'+json.present[k].name})
+				.html(json.present[k].name).appendTo(liItem);
+			liItem.appendTo($("#names"));
 		}
-		var plotData = [];
-		for (var k = 0; k < json.rows.length && json.rows[0].doc._id - json.rows[k].doc._id < 24*60*60*1000; ++k) {
-			var item = json.rows[k].doc;
-			plotData.push([item._id, item.count]);
+		for (var k = 0, plotData = []; k < json.counters.length; ++k) {
+			plotData.push([json.counters[k].time, json.counters[k].count]);			
 		}
 		plotData.reverse();
 		$.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
-
 
 });
 </script>

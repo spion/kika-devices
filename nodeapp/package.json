@@ -1,13 +1,16 @@
 {
-  "name": "kika-devices",
+  "name": "kikastatus",
   "version": "0.0.1",
   "private": false,
   "scripts": {
     "start": "node app"
   },
   "dependencies": {
-    "express": "3.0.0alpha1",
+    "express": "2.5.9",
     "ejs": "0.7.1",
-	"mongodb-wrapper":"0.2.7"
+    "mongodb": "0.9.6-23",
+    "async_testing": "0.3.2",
+    "passport":"0.1.8",
+    "passport-twitter":"0.1.3"
   }
 }
