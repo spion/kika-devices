@@ -1,10 +1,9 @@
 function(doc, req) {
-
-
 	var whiteList = function(mac, name) {
+		var wl = {
+		}
+		if (wl[mac]) { return wl[mac]; }
 		return null;
-		//if (wl[mac]) { return wl[mac]; }
-		//return null;
 	};
 
 	var filteredNames = ['dvoarak'],
@@ -31,17 +30,17 @@ function(doc, req) {
 		++deviceCount;
 
 		// If its whitelisted, add it to the currently active devices
-		if (whiteList(mac, deviceName)) {
-			deviceNamesF[whiteList(mac,deviceName)] = true;
+		if (whiteList(deviceMac, deviceName)) {
+			deviceNamesF[whiteList(deviceMac,deviceName)] = true;
 		}
 	}
 
-	for (var key in deviceNamesF) { deviceNames.push(deviceNamesF[key]); }
+	for (var key in deviceNamesF) { deviceNames.push(key); }
 
 	var json = {
 		_id: new Date().getTime().toString(),
 		count: deviceCount,
 		devices: deviceNames
 	};
-	return [json, "OK"];
+	return [json, "OK\n"];
 }

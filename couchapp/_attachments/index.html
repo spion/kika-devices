@@ -8,35 +8,6 @@
 				font-family: Verdana;
 				font-size: 14px;
 			}
-			#toplist div.item {
-				position:relative;
-				border: solid 1px #ccc;
-				height:1.75em;
-				width:100%;
-				margin: 0.5em;
-			}
-			#toplist div.item div.prog {
-				position:absolute;
-				top:0;
-				left:0;
-				height:100%;
-				background-color:#f5f5cc;
-			}
-			#toplist div.item div.name {
-				position:absolute;
-				top:0.25em;
-				left:0.5em;
-			}
-
-			#toplist div.item div.time {
-				position:absolute;
-				top:0.25em;
-				right:0.5em;
-			}
-			#toplist {
-				width:600px;
-			}
-
 
 		</style>
 	</head>
@@ -53,14 +24,10 @@
 			</div>
 
 			<p>Присутни</p>
-			<ul id="devices">
+			<ul id="people">
 			</ul>
 
-			<p>Топ листа (7 дена)</p>
-			<div id="toplist">
-				
-			</div>
-			<p>Сакаш да учествуваш во топ листата и во листата на присутни? Дај ја твојата MAC адреса и име на spion додека си во хаклаб
+			<p>Сакаш да учествуваш во листата на присутни? Дај ја твојата MAC адреса и име на spion додека си во хаклаб
 			за да бидеш додаден. MAC адресата можеш да ја добиеш со </p>
 			<pre>ifconfig | grep HWaddr</pre>
 
@@ -93,29 +60,32 @@ var getDuration = function(dur) {
 	ret.push(zeroFill(m,2) + "m");
 	return ret.join(" ");
 }
-$.getJSON("/kika-devices/_all_docs", 
-		{ limit: 12*24*7, descending: true, startkey: '"9"', endkey:'"1"', include_docs:true },
-		function(json) {
-		var current = json.rows[0].doc;
-		$("#count").html(current.count);
-		$("#status").html(current.count?"отворен":"напуштен");
-		var lastDate;
-		for (var k = 1; k < json.rows.length; ++k) {
-		var item = json.rows[k].doc;
-		lastDate = item._id;
-		if ((!!item.count) != (!!current.count)) {
-			$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
-			break;
-		} 
-			$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
-		}		
 
-		if (isPlural(current.count)) { $("#plural").show(); }
-		else { $("#plural").hide(); }
-		$("#devices").html("");
-		for (var k = 0; k < current.devices.length; ++k) {
-			$("<li></li>").html(current.devices[k]).appendTo($("#devices"));
-		}
+
+$.getJSON("/kika-devices/_all_docs", 
+		{ limit: 12*24*7, descending: true, startkey: '"9"', endkey:'"0"', include_docs:true },
+		function(json) {
+			var current = json.rows[0].doc;
+			$("#count").html(current.count);
+			$("#status").html(current.count?"отворен":"напуштен");
+			var lastDate;
+			for (var k = 1; k < json.rows.length; ++k) {
+				var item = json.rows[k].doc;
+				lastDate = item._id;
+				if ((!!item.count) != (!!current.count)) {
+					$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
+					break;
+				} 
+				$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
+			}		
+
+			if (isPlural(current.count)) { $("#plural").show(); }
+			else { $("#plural").hide(); }
+			$("#people").html("");
+			var people = json.rows[json.rows.length - 1].doc;
+			for (var k = 0; k < people.names.length; ++k) {
+				$("<li></li>").html(people.names[k]).appendTo($("#people"));
+			}
 		var plotData = [];
 		for (var k = 0; k < json.rows.length && json.rows[0].doc._id - json.rows[k].doc._id < 24*60*60*1000; ++k) {
 			var item = json.rows[k].doc;
@@ -124,32 +94,6 @@ $.getJSON("/kika-devices/_all_docs",
 		plotData.reverse();
 		$.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
 
-
-		var showToplist = function() {
-			var topDevices = {};
-			for (var k = 0; k < json.rows.length; ++k) {
-				var item = json.rows[k].doc;
-				for (var j = 0; j < item.devices.length; ++j) {
-					topDevices[item.devices[j]] = (topDevices[item.devices[j]]? topDevices[item.devices[j]]:0) + 5*60*1000;
-				}
-			}
-			var topList = [], maxDur = 0;
-			for (var key in topDevices) {
-				maxDur = Math.max(topDevices[key], maxDur);
-				topList.push({name: key, duration: topDevices[key]});
-			}
-			topList.sort(function(a, b) { return a.duration - b.duration; });
-			topList.reverse();
-			$("#toplist").html("");
-			for (var k = 0; k < topList.length; ++k) {
-				var tlitem = $("<div></div>").addClass("item")
-					$("<div></div>").addClass("prog").css({width: (100 * topList[k].duration / maxDur) + '%'}).appendTo(tlitem);
-				$("<div></div>").addClass("name").html(topList[k].name).appendTo(tlitem);
-				$("<div></div>").addClass("time").html(getDuration(topList[k].duration)).appendTo(tlitem);
-				tlitem.appendTo($("#toplist"));
-			}
-		}
-		//showToplist();
 
 });
 </script>
