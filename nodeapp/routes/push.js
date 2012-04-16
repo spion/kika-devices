@@ -19,6 +19,7 @@ module.exports = function(app) {
 	app.post('/push', function(req, res) {
 		var db = mongodb();
 		db.users.find().toArray(function(err, users) {
+
 			var macs = macMap(req.rawBody.split("\n"));
 
 			var countedMacs = 0;

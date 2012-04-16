@@ -634,10 +634,11 @@ var Database = exports.Database = function(host, port, name, prefix, username, p
 			state = err ? DatabaseConnectionClosed : DatabaseConnectionOpen;
 
 		if (username && password) {
+			
 			connection.authenticate(username, password, function(err) {
 				if (!err) {
 					emitter.emit('opened', err, connection)
-				emitter.removeAllListeners('opened')
+					emitter.removeAllListeners('opened')
 				}
 			});
 		} else {
@@ -913,8 +914,8 @@ Connection.prototype.toString = function() {
 // The database is the machine (host/port)
 // db = mongo.db host, port, name
 
-exports.db = function(host, port, name, prefix) {
-    return new Database(host, port, name, prefix)
+exports.db = function(host, port, name, prefix, username, password) {
+    return new Database(host, port, name, prefix, username, password)
 }   
                          
 // Expose ObjectID
