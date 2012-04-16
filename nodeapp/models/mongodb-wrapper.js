@@ -633,6 +633,7 @@ var Database = exports.Database = function(host, port, name, prefix, username, p
 		var currentEmitter = emitter
 			state = err ? DatabaseConnectionClosed : DatabaseConnectionOpen;
 
+
 		if (username && password) {
 			
 			connection.authenticate(username, password, function(err) {
@@ -915,7 +916,7 @@ Connection.prototype.toString = function() {
 // db = mongo.db host, port, name
 
 exports.db = function(host, port, name, prefix, username, password) {
-    return new Database(host, port, name, prefix, username, password)
+    return new Database(host, port, name, prefix, username, password);
 }   
                          
 // Expose ObjectID
