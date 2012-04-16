@@ -3,9 +3,6 @@ function(doc, req) {
 
 	var whiteList = function(mac, name) {
 		var wl = {
-			"00:1c:bf:50:69:cb": "spion"
-			"00:19:5b:cd:a9:18": "Doda"
-			"00:21:6b:31:d6:da": "Андреј Т."
 		};
 		if (wl[mac]) { return wl[mac]; }
 		return null;
