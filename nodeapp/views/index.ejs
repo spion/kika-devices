@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Уреди во Хаклаб Кика</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style type="text/css">
+			body {
+				font-family: Verdana;
+				font-size: 14px;
+			}
+			#toplist div.item {
+				position:relative;
+				border: solid 1px #ccc;
+				height:1.75em;
+				width:100%;
+				margin: 0.5em;
+			}
+			#toplist div.item div.prog {
+				position:absolute;
+				top:0;
+				left:0;
+				height:100%;
+				background-color:#f5f5cc;
+			}
+			#toplist div.item div.name {
+				position:absolute;
+				top:0.25em;
+				left:0.5em;
+			}
+
+			#toplist div.item div.time {
+				position:absolute;
+				top:0.25em;
+				right:0.5em;
+			}
+			#toplist {
+				width:600px;
+			}
+
+
+		</style>
+	</head>
+	<body>
+		<div style="width:620px; margin:auto;">
+			<h1>Уреди во Хаклаб Кика</h1>
+
+			<h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
+
+			<p>Хаклабот беше <span id="status">напуштен</span> пред <span id="status-dur">0m</span> 
+
+			<p>Историја</p>
+			<div style="width:600px; height:150px;" id="plot">
+			</div>
+
+			<p>Присутни</p>
+			<ul id="devices">
+			</ul>
+
+			<p>Топ листа (7 дена)</p>
+			<div id="toplist">
+				
+			</div>
+			<p>Сакаш да учествуваш во топ листата и во листата на присутни? Дај ја твојата MAC адреса и име на spion додека си во хаклаб
+			за да бидеш додаден. MAC адресата можеш да ја добиеш со </p>
+			<pre>ifconfig | grep HWaddr</pre>
+
+		</div>
+
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+		<script type="text/javascript">
+
+function zeroFill( number, width )
+{
+	width -= number.toString().length;
+	if ( width > 0 )
+	{
+		return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+	}
+	return number;
+}
+
+var isPlural = function(num) {
+	return (num % 10 != 1 || num % 100 == 11);
+}
+
+var getDuration = function(dur) {
+	var minDur = Math.ceil(dur / 1000 / 60);
+	var m = minDur % 60;
+	var h = Math.floor(minDur / 60);
+	var ret = [];
+	if (h > 0) ret.push(h + "h");
+	ret.push(zeroFill(m,2) + "m");
+	return ret.join(" ");
+}
+$.getJSON("/status", { limit: 12*24*7 }, function(json) {
+		var current = json.rows[0].doc;
+		$("#count").html(current.count);
+		$("#status").html(current.count?"отворен":"напуштен");
+		var lastDate;
+		for (var k = 1; k < json.rows.length; ++k) {
+			var item = json.rows[k].doc;
+			lastDate = item._id;
+			if ((!!item.count) != (!!current.count)) {
+				$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
+				break;
+			} 
+			$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
+		}
+
+		if (isPlural(current.count)) { $("#plural").show(); }
+		else { $("#plural").hide(); }
+
+		$("#devices").html("");
+		for (var k = 0; k < current.devices.length; ++k) {
+			$("<li></li>").html(current.devices[k]).appendTo($("#devices"));
+		}
+		var plotData = [];
+		for (var k = 0; k < json.rows.length && json.rows[0].doc._id - json.rows[k].doc._id < 24*60*60*1000; ++k) {
+			var item = json.rows[k].doc;
+			plotData.push([item._id, item.count]);
+		}
+		plotData.reverse();
+		$.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
+
+
+});
+</script>
+</body>
+</html>
