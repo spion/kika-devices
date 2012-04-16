@@ -12,7 +12,7 @@ module.exports = function(app) {
 				var stat = null;
 				if (statuses.length) {
 					db.users.find({id: {$in: statuses[0].ids}}).toArray(function(err, users) {
-						var filteredUsers = users.map(function(u) { return {name: u.name, pic: u.pic}; });
+						var filteredUsers = users.map(function(u) { return {id: u.id, name: u.name, pic: u.pic}; });
 						res.end(JSON.stringify({
 							err:null,
 							counters: counters,					
