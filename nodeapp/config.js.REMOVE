@@ -1,7 +1,7 @@
 exports.baseUrl = 'http://kikastatus.herokuapp.com';
 exports.twitter = {
-	key:'xxxx',
-	secret: 'xxxx'
+	key:'xxxxxx',
+	secret: 'xxxxxx'
 };
-exports.sessionSecret = 'xxxx';
+exports.sessionSecret = 'xxxxx';
 exports.mongodbConnectionString = 'mongodb://:@localhost:27017/kikadevices';
