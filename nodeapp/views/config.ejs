@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head>
+		<title>Постави ги твоите MAC адреси</title>
+	</head>
+	<body>
+		<div style="width:620px; margin:auto;">
+			<h1><img src="<%= user.pic %>" style="vertical-align:middle;" alt="<%= user.name %>"> <%= user.name %></h1>
+			<h2>Листа на MAC адреси</h2>
+			<form method="post" action="/config/update">
+				<textarea name="macs" rows="4" cols="30"><%= user.macs.join("\n") %></textarea>
+				<br>
+				<input type="submit" id="submit" name="Submit" value="Submit">
+			</form>
+		</div>
+	</body>
+</html>
+

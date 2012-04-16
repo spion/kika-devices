@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Уреди во Хаклаб Кика</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style type="text/css">
+			body {
+				font-family: Verdana;
+				font-size: 14px;
+			}
+			#names li a {
+				font-size: 18px;
+				margin-left: 10px;
+			}
+
+
+		</style>
+	</head>
+	<body>
+		<div style="width:620px; margin:auto;">
+			<h1>Уреди во Хаклаб Кика</h1>
+
+			<h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
+
+			<p>Хаклабот беше <span id="status">напуштен</span> пред <span id="status-dur">0m</span> 
+
+			<p>Историја</p>
+			<div style="width:600px; height:150px;" id="plot">
+			</div>
+
+			<p>Присутни</p>
+			<ul id="names">
+			</ul>
+
+			<p>Сакаш да учествуваш во листата на присутни? <a href="/config">Логирај се преку Twitter</a> и додај ги твоите MAC адреси. 
+			MAC адресата можеш да ја добиеш со </p>
+			<pre>ifconfig | grep HWaddr</pre>
+
+		</div>
+
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+		<script type="text/javascript">
+
+function zeroFill( number, width )
+{
+	width -= number.toString().length;
+	if ( width > 0 )
+	{
+		return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
+	}
+	return number;
+}
+
+var isPlural = function(num) {
+	return (num % 10 != 1 || num % 100 == 11);
+}
+
+var getDuration = function(dur) {
+	var minDur = Math.ceil(dur / 1000 / 60);
+	var m = minDur % 60;
+	var h = Math.floor(minDur / 60);
+	var ret = [];
+	if (h > 0) ret.push(h + "h");
+	ret.push(zeroFill(m,2) + "m");
+	return ret.join(" ");
+}
+$.getJSON("/status", { limit: 12*24*7 }, function(json) {
+		var current = json.counters[0];
+		$("#count").html(current.count);
+		$("#status").html(current.count?"отворен":"напуштен");
+		var lastDate;
+		for (var k = 1; k < json.counters.length; ++k) {
+			var item = json.counters[k];
+			lastDate = item.time;
+			if ((!!item.count) != (!!current.count)) {
+				$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
+				break;
+			} 
+			$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
+		}
+
+		if (isPlural(current.count)) { $("#plural").show(); }
+		else { $("#plural").hide(); }
+
+		$("#names").html("");
+		for (var k = 0; k < json.present.length; ++k) {
+			var liItem = $("<li></li>");
+			$("<img />").attr({src: json.present[k].pic}).css({'vertical-align': 'middle'}).appendTo(liItem);
+			$("<a></a>").attr({href: 'http://twitter.com/'+json.present[k].name})
+				.html(json.present[k].name).appendTo(liItem);
+			liItem.appendTo($("#names"));
+		}
+		for (var k = 0, plotData = []; k < json.counters.length; ++k) {
+			plotData.push([json.counters[k].time, json.counters[k].count]);			
+		}
+		plotData.reverse();
+		$.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
+
+});
+</script>
+</body>
+</html>
