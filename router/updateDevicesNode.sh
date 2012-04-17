@@ -7,7 +7,7 @@ then
    touch $lockfile
    iface=`cat .config-iface`
    pushurl=`cat .config-url`
-   arp -ni $iface | awk '{print $3}' | grep ':' | curl $pushurl --data-binary @- -H"Content-Type:text/plain"  critical-section
+   arp -ni $iface | awk '{print $3}' | grep ':' | curl $pushurl --data-binary @- -H"Content-Type:text/plain"
    rm $lockfile
    echo "Successful update"
 else
