@@ -9,7 +9,7 @@ then
    pushurl=`cat .config-url`
    arp -ni $iface | awk '{print $3}' | grep ':' | curl $pushurl --data-binary @- -H"Content-Type:text/plain"
    rm $lockfile
-   echo "Successful update"
+   echo "Successful update" >> log
 else
    echo "attempting to push macs while previous push in progress" >> log
 fi
