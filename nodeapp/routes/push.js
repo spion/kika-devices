@@ -12,7 +12,8 @@ var macMap = function(arr) {
 }
 
 var blackListMac = {
-	'':true
+	'':true,
+	'00:0c:76:5d:1c:9c':true
 };
 
 module.exports = function(app) {
