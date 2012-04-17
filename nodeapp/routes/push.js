@@ -39,7 +39,7 @@ module.exports = function(app) {
 						}
 					}
 				}
-				
+
 				db.statuses.findOne(function(err, status) {
 					if (!status) {
 						status = { time: new Date().getTime(), ids: list }
@@ -49,14 +49,14 @@ module.exports = function(app) {
 						status.ids = list;
 						status.time = new Date().getTime();
 					}
-					db.statuses.save(status); 
+					db.statuses.save(status);
 
 				});
 
 				db.counters.findOne({time: {$gt : new Date().getTime() - config.pushDuplicateTimeout}}, function(err, counter) {
-					if (!counter) { 
+					if (!counter) {
 						counter = { time: new Date().getTime(),
-							count: countedMacs, people: list.length 
+							count: countedMacs, people: list.length
 						};
 					}
 					if (countedMacs > counter.count) {
