@@ -9,6 +9,7 @@ exports.wait = function(obj, fn, time) {
 	}, time);
 };
 
-exports.signal = function(name) {
+exports.signal = function(obj) {
 	if (obj.__locked) delete obj['__locked'];
-}
+};
+
