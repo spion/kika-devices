@@ -3,9 +3,6 @@ var passport = require('passport'),
 	config = require('../config.js'),
 	mongodb = require('../models/db.js');
 
-
-
-
 passport.serializeUser(function(user, done) {
 	done(null, user.id);
 });
@@ -27,6 +24,10 @@ passport.use(new TwitterStrategy({
 	db.users.findOne({'twitter.id' : profile.id}, function(err, user) { 
 		if (user) { 
 			// return user
+            user.name = profile.username;
+            user.pic = profile._json.profile_image_url;
+            user.twitter = profile;
+            db.users.save(user);
 			done(err, user); 
 		} 
 		else {
@@ -41,6 +42,19 @@ passport.use(new TwitterStrategy({
 	});
 }));
 
-exports.user = function(req, res, next) { if (req.isAuthenticated()) return next(); res.redirect('/login'); };
-exports.admin = function(req, res, next) { if (req.isAuthenticated() && config.admins[req.user.id]) return next(); res.redirect('/login'); }
+exports.user = function(req, res, next) {
+    if (req.isAuthenticated()) return next();
+    res.cookie('redirect', req.url);
+    res.redirect('/login');
+};
 
+exports.admin = function(req, res, next) {
+    if (req.isAuthenticated() && config.admins[req.user.id]) return next();
+    res.cookie('redirect', req.url);
+    res.redirect('/login');
+};
+
+exports.redirect = function(req, res) {
+    var redirectUrl = req.cookies && req.cookies.redirect ? req.cookies.redirect : '/';
+    res.redirect(redirectUrl);
+}

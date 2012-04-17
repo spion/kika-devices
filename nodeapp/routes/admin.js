@@ -1,5 +1,7 @@
+
 var mongodb = require('../models/db.js'),
     auth = require('../models/auth.js');
+
 module.exports = function(app) {
 	app.get('/admin/dbindex', auth.admin, function(req, res) {
 		var db = mongodb();
