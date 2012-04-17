@@ -7,7 +7,7 @@ module.exports = function(app) {
 	});
 	app.post('/config/update', auth.user, function(req, res) {
 		var db = mongodb();
-		req.user.macs = req.body.macs.split(/\n\s\r\t/);
+		req.user.macs = req.body.macs.split(/[\n\s\r\t]+/);
 		db.users.save(req.user);
 		res.redirect('/');
 	});
