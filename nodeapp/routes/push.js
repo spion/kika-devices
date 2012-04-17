@@ -34,16 +34,30 @@ module.exports = function(app) {
 					}
 				}
 			}
-			db.counters.insert({time: new Date().getTime(), 
-				count: countedMacs, people: list.length});
-			db.statuses.find().toArray(function(err, statuses) {
-				if (statuses.length < 1) {
-					db.statuses.insert({ time: new Date().getTime(), ids: list });
+			db.counters.findOne({time: {$gt : new Date().getTime() - 1000}}, 
+				function(err, counter) {
+					if (!counter) { 
+						counter = { time: new Date().getTime(),
+							count: countedMacs, people: list.length 
+						};
+					}
+					if (countedMacs > counter.count) {
+						counter.count = countedMacs;
+						counter.people = list.length;
+					}
+					db.counters.save(counter);
+			});
+			db.statuses.findOne(function(err, status) {
+				if (!status) {
+					status = { time: new Date().getTime(), ids: list }
 				}
-				else {
-					db.statuses.update(statuses[0], 
-						{ time: new Date().getTime(), ids: list });
+				if (new Date().getTime() - status.time > 1000
+					|| list.length > status.ids.length) {
+					status.ids = list;
+					status.time = new Date().getTime();
 				}
+				db.statuses.save(status); 
+
 				res.end("OK\n");
 			});
 		});
