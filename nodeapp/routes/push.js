@@ -19,7 +19,6 @@ module.exports = function(app) {
 	app.post('/push', function(req, res) {
 		var db = mongodb();
 		db.users.find().toArray(function(err, users) {
-
 			var macs = macMap(req.rawBody.split("\n"));
 
 			var countedMacs = 0;
@@ -34,15 +33,17 @@ module.exports = function(app) {
 					}
 				}
 			}
-			db.counters.insert({time: new Date().getTime(), count: countedMacs, people: list.length});
+			db.counters.insert({time: new Date().getTime(), 
+				count: countedMacs, people: list.length});
 			db.statuses.find().toArray(function(err, statuses) {
 				if (statuses.length < 1) {
 					db.statuses.insert({ time: new Date().getTime(), ids: list });
 				}
 				else {
-					db.statuses.update(statuses[0], { time: new Date().getTime(), ids: list });
+					db.statuses.update(statuses[0], 
+						{ time: new Date().getTime(), ids: list });
 				}
-				res.end("OK");
+				res.end("OK\n");
 			});
 		});
 	});
