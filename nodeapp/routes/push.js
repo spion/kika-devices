@@ -1,10 +1,10 @@
 
 var mongodb = require('../models/db.js'),
 	config = require('../config.js');
-    semaphore = require('../models/semaphore.js');
+    queue = require('../models/async-queue.js');
 
 
-var pushLock = {};
+var pushQueue = queue();
 
 var macMap = function(arr) {
 	//arr = [{name: 'gdamjan', twitter: {}, macs: ["mac1", "mac2", "mac3"]}]
@@ -22,7 +22,7 @@ var blackListMac = {
 
 module.exports = function(app) {
 	app.post('/push', function(req, res) {
-		semaphore.wait(pushLock, function() {
+		pushQueue.exec(function() {
 			var db = mongodb();
 			db.users.find().toArray(function(err, users) {
 				var macs = macMap(req.rawBody.split("\n"));
@@ -65,12 +65,12 @@ module.exports = function(app) {
 					}
 					db.counters.save(counter, function(err, cnt) {
 						// allow other waiting pushes
-						semaphore.signal(pushLock);
+						pushQueue.next();
 						res.end("OK\n");
 					});
 				});
 
 			});
-		}, 30);
+		});
 	});
 };
