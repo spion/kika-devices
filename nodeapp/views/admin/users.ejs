@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html><head><title>Users</title></head>
+<body>
+	<ul>
+	<% for (var k = 0; k < users.length; ++k) { %>
+		<li><%= users[k].id %> <%= users[k].name %> <%= users[k].macs.join(",") %></li>
+	<% } %>
+	</ul>
+</body>

@@ -41,6 +41,6 @@ passport.use(new TwitterStrategy({
 	});
 }));
 
-module.exports = function(req, res, next) { if (req.isAuthenticated()) return next(); res.redirect('/login'); };
-
+exports.user = function(req, res, next) { if (req.isAuthenticated()) return next(); res.redirect('/login'); };
+exports.admin = function(req, res, next) { if (req.isAuthenticated() && config.admins[req.user.id]) return next(); res.redirect('/login'); }
 

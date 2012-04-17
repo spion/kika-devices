@@ -6,7 +6,7 @@ var macMap = function(arr) {
 	//arr = [{name: 'gdamjan', twitter: {}, macs: ["mac1", "mac2", "mac3"]}]
 	var map = {};
 	for (var i = 0; i < arr.length; ++i) {
-		map[arr[i]] = true;
+		if (arr[i].length) map[arr[i]] = true;
 	}
 	return map;
 }
