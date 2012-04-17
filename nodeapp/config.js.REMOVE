@@ -1,7 +1,27 @@
+// Base URL of the site.
 exports.baseUrl = 'http://kikastatus.herokuapp.com';
+// exports.baseUrl = 'http://localhost:8080';
+
+// Twitter consumer key and secret
 exports.twitter = {
-	key:'xxxxxx',
-	secret: 'xxxxxx'
+	key:'xxx',
+	secret: 'xxxxx'
 };
+
 exports.sessionSecret = 'xxxxx';
+
+// Default mongodb connect string, if none provided by Heroku
+// note: user and password are mandatory even if empty.
 exports.mongodbConnectionString = 'mongodb://:@localhost:27017/kikadevices';
+
+// Admin users. user.id: value. User ids can be seen in status request.
+exports.admins = {
+	'4f8c92908eb7200100000006': true
+};
+
+// Push cron duplicate protection. If two pushes are within the specified
+// time interval, the push with the highest count will be used.
+exports.pushDuplicateTimeout = 10000;
+
+
+
