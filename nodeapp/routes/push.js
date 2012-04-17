@@ -1,7 +1,7 @@
 
 var mongodb = require('../models/db.js'),
 	config = require('../config.js');
-    locker = require('../models/locker.js');
+    semaphore = require('../models/semaphore.js');
 
 
 var pushLock = {};
@@ -22,7 +22,7 @@ var blackListMac = {
 
 module.exports = function(app) {
 	app.post('/push', function(req, res) {
-		locker.lock(pushLock, function() {
+		semaphore.wait(pushLock, function() {
 			var db = mongodb();
 			db.users.find().toArray(function(err, users) {
 				var macs = macMap(req.rawBody.split("\n"));
@@ -39,7 +39,7 @@ module.exports = function(app) {
 						}
 					}
 				}
-
+				
 				db.statuses.findOne(function(err, status) {
 					if (!status) {
 						status = { time: new Date().getTime(), ids: list }
@@ -51,7 +51,6 @@ module.exports = function(app) {
 					}
 					db.statuses.save(status); 
 
-					res.end("OK\n");
 				});
 
 				db.counters.findOne({time: {$gt : new Date().getTime() - config.pushDuplicateTimeout}}, function(err, counter) {
@@ -65,8 +64,9 @@ module.exports = function(app) {
 						counter.people = list.length;
 					}
 					db.counters.save(counter, function(err, cnt) {
-						// unlock 
-						locker.unlock(pushLock);
+						// allow other waiting pushes
+						semaphore.signal(pushLock);
+						res.end("OK\n");
 					});
 				});
 
