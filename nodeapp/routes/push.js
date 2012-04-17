@@ -1,7 +1,10 @@
 
 var mongodb = require('../models/db.js'),
 	config = require('../config.js');
+    locker = require('../models/locker.js');
 
+
+var pushLock = {};
 
 var macMap = function(arr) {
 	//arr = [{name: 'gdamjan', twitter: {}, macs: ["mac1", "mac2", "mac3"]}]
@@ -19,7 +22,7 @@ var blackListMac = {
 
 module.exports = function(app) {
 	app.post('/push', function(req, res) {
-		setTimeout(function() {
+		locker.lock(pushLock, function() {
 			var db = mongodb();
 			db.users.find().toArray(function(err, users) {
 				var macs = macMap(req.rawBody.split("\n"));
@@ -36,19 +39,7 @@ module.exports = function(app) {
 						}
 					}
 				}
-				db.counters.findOne({time: {$gt : new Date().getTime() - config.pushDuplicateTimeout}}, 
-					function(err, counter) {
-						if (!counter) { 
-							counter = { time: new Date().getTime(),
-								count: countedMacs, people: list.length 
-							};
-						}
-						if (countedMacs > counter.count) {
-							counter.count = countedMacs;
-							counter.people = list.length;
-						}
-						db.counters.save(counter);
-					});
+
 				db.statuses.findOne(function(err, status) {
 					if (!status) {
 						status = { time: new Date().getTime(), ids: list }
@@ -62,7 +53,24 @@ module.exports = function(app) {
 
 					res.end("OK\n");
 				});
+
+				db.counters.findOne({time: {$gt : new Date().getTime() - config.pushDuplicateTimeout}}, function(err, counter) {
+					if (!counter) { 
+						counter = { time: new Date().getTime(),
+							count: countedMacs, people: list.length 
+						};
+					}
+					if (countedMacs > counter.count) {
+						counter.count = countedMacs;
+						counter.people = list.length;
+					}
+					db.counters.save(counter, function(err, cnt) {
+						// unlock 
+						locker.unlock(pushLock);
+					});
+				});
+
 			});
-		}, Math.ceil(Math.random() * 200));
+		}, 30);
 	});
 };
