@@ -4,7 +4,7 @@ var mongodb = require('../models/db.js');
 module.exports = function(app) {
 	app.get("/status", function(req, res) {
 		var db = mongodb();
-		var yesterday = new Date().getTime() - 26*60*60*1000;
+		var yesterday = new Date().getTime() - 24*60*60*1000;
 		db.counters.find({time: {$gte: yesterday}}).sort({time: -1}).toArray(function(err, counters) {
 			if (err) { res.end(JSON.stringify({err:err})); return; }
 			db.statuses.find().toArray(function(err, statuses) {
