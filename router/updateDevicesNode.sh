@@ -3,7 +3,7 @@
 #basePath='/root/kika-devices';
 
 # Automatic basePath with bash
-# Used because the cron runs
+# Used because the cron may run the script from a different working directory
 basePath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 iface=`cat $basePath/.config-iface`
