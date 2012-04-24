@@ -35,8 +35,9 @@ passport.use(new TwitterStrategy({
 			var usr = { macs:[], name:profile.username, pic: profile._json.profile_image_url, twitter:profile };
 			db.users.save(usr, function(err, user) { 
 				user.id = user._id.toString();
-				db.users.save(user);
-				done(err, user); 
+				db.users.save(user, function (err, usr) {
+                    			done(err, usr);
+                		});
 			}); 
 		} 
 	});
