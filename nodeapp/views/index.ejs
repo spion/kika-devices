@@ -68,39 +68,44 @@ var getDuration = function(dur) {
 	ret.push(zeroFill(m,2) + "m");
 	return ret.join(" ");
 }
-$.getJSON("/status", { limit: 12*24*7 }, function(json) {
-		var current = json.counters[0];
-		$("#count").html(current.count);
-		$("#status").html(current.count?"отворен":"напуштен");
-		var lastDate;
-		for (var k = 1; k < json.counters.length; ++k) {
-			var item = json.counters[k];
-			lastDate = item.time;
-			if ((!!item.count) != (!!current.count)) {
-				$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
-				break;
-			} 
-			$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
-		}
+var updateStatus = function () {
+   $.getJSON("/status", { limit: 12*24*7 }, function(json) {
+                   var current = json.counters[0];
+                   $("#count").html(current.count);
+                   $("#status").html(current.count?"отворен":"напуштен");
+                   var lastDate;
+                   for (var k = 1; k < json.counters.length; ++k) {
+                           var item = json.counters[k];
+                           lastDate = item.time;
+                           if ((!!item.count) != (!!current.count)) {
+                                   $("#status-dur").html(getDuration(new Date().getTime() - lastDate));
+                                   break;
+                           } 
+                           $("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
+                   }
 
-		if (isPlural(current.count)) { $("#plural").show(); }
-		else { $("#plural").hide(); }
+                   if (isPlural(current.count)) { $("#plural").show(); }
+                   else { $("#plural").hide(); }
 
-		$("#names").html("");
-		for (var k = 0; k < json.present.length; ++k) {
-			var liItem = $("<li></li>");
-			$("<img />").attr({src: json.present[k].pic}).css({'vertical-align': 'middle'}).appendTo(liItem);
-			$("<a></a>").attr({href: 'http://twitter.com/'+json.present[k].name})
-				.html(json.present[k].name).appendTo(liItem);
-			liItem.appendTo($("#names"));
-		}
-		for (var k = 0, plotData = []; k < json.counters.length; ++k) {
-			plotData.push([json.counters[k].time, json.counters[k].count]);			
-		}
-		plotData.reverse();
-		$.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
+                   $("#names").html("");
+                   for (var k = 0; k < json.present.length; ++k) {
+                           var liItem = $("<li></li>");
+                           $("<img />").attr({src: json.present[k].pic}).css({'vertical-align': 'middle'}).appendTo(liItem);
+                           $("<a></a>").attr({href: 'http://twitter.com/'+json.present[k].name})
+                                   .html(json.present[k].name).appendTo(liItem);
+                           liItem.appendTo($("#names"));
+                   }
+                   for (var k = 0, plotData = []; k < json.counters.length; ++k) {
+                           plotData.push([json.counters[k].time, json.counters[k].count]);			
+                   }
+                   plotData.reverse();
+                   $.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
 
-});
+   });
+   window.setTimeout(updateStatus, 3*60*1000);
+}
+
+updateStatus();
 </script>
 </body>
 </html>
