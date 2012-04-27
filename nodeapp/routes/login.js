@@ -1,17 +1,32 @@
 // login pages
 
 var passport = require('passport'),
-    auth = require('../models/auth.js');
+    auth = require('../models/auth.js'),
+    config = require('../config.js');
 
 module.exports = function (app) {
-    app.get('/login', passport.authenticate('twitter'), function (req, res) { });
-    app.get('/login/callback', passport.authenticate('twitter', {failureRedirect:'/login'}), auth.redirect);
-    app.get('/login/admin', passport.authenticate('twitter-admin'), function (req, res) { });
-    app.get('/login/admin/callback', passport.authenticate('twitter-admin', {failureRedirect:'/login/admin'}), auth.redirectAdmin);
+    app.get('/login',
+        function (req, res, next) {
+            passport.authenticate(config.get(req))(req, res, next)
+        },
+        function (req, res) {
+        });
 
+    app.get('/login/callback',
+        function (req, res, next) {
+            passport.authenticate(config.get(req), {failureRedirect:'/login'})(req, res, next)
+        }, auth.redirect);
 
-    //app.get('/logout', function(req, res) {
-    //    if (res.isAuthenticated()) res.cookie.clear
-    //})
+    app.get('/login/admin', function (req, res, next) {
+            passport.authenticate(config.get(req) + "-admin")(req, res, next)
+        },
+        function (req, res) {
+        });
+
+    app.get('/login/admin/callback',
+        function (req, res, next) {
+            passport.authenticate(config.get(req) + '-admin', {failureRedirect:'/login/admin'})(req, res, next)
+        }, auth.redirectAdmin);
+
 };
 

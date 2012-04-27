@@ -40,31 +40,28 @@ module.exports = function (app) {
             }
 
             db.statuses.findOne(function (err, status) {
-                if (!status) {
-                    status = { time:new Date().getTime(), ids:peopleIds }
-                }
-                if (new Date().getTime() - status.time > config.pushDuplicateTimeout
-                    || peopleIds.length > status.ids.length) {
-                    status.ids = peopleIds;
-                    status.time = new Date().getTime();
-                }
+                if (!status)
+                    status = {};
+
+                status.dbtag = config.domain(req).dbtag;
+                status.ids = peopleIds;
+                status.time = new Date().getTime();
+
                 db.statuses.save(status);
 
             });
             var counter = counter = {
                 time:new Date().getTime(),
                 count:countedMacs,
-                people:peopleIds.length
+                people:peopleIds.length,
+                dbtag:config.domains(req).dbtag
             };
-            db.counters.find().sort({time:-1}).limit(1).toArray(function (err, arr) {
+            db.counters.find({dbtag:config.domain(req).dbtag}).sort({time:-1}).limit(1).toArray(function (err, arr) {
                 var lastCounter = arr[0];
                 var hadDevicesPresentBefore = lastCounter.count > 0;
                 var hasDevicesPresentNow = counter.count > 0;
-                //console.log("count change ", lastCounter, " -> ", counter);
-                //console.log("presence before", hadDevicesPresentBefore, " and after ", hasDevicesPresentNow);
                 if (hasDevicesPresentNow !== hadDevicesPresentBefore) {
-                    //console.log("status changed, posting to twitter");
-                    twitterAdmin.postMessage(hasDevicesPresentNow);
+                    twitterAdmin.postMessage(hasDevicesPresentNow, req);
                 }
                 db.counters.save(counter, function (err, cnt) {
                     res.end("OK\n");

@@ -1,7 +1,8 @@
 var passport = require('passport'),
     TwitterStrategy = require('passport-twitter').Strategy,
-    config = require('../config.js'),
+    config = require('../models/config.js'),
     mongodb = require('../models/db.js');
+
 
 passport.serializeUser(function (user, done) {
     done(null, user.id);
@@ -19,69 +20,76 @@ passport.deserializeUser(function (id, done) {
     });
 });
 
-var normalTwitterStrategy = new TwitterStrategy({
-    consumerKey:config.twitter.key,
-    consumerSecret:config.twitter.secret,
-    callbackURL:config.baseUrl + "/login/callback"
-}, function (token, tokenSecret, profile, done) {
-    var db = mongodb();
-    db.users.findOne({'twitter.id':profile.id}, function (err, user) {
-        if (user) {
+var domainStrategies = {};
+
+for (var xkey in config.domains) {
+    var lconfig = config.get(xkey);
+    var normalTwitterStrategy = new TwitterStrategy({
+        consumerKey:config.twitter.key,
+        consumerSecret:config.twitter.secret,
+        callbackURL:lconfig.baseUrl + "/login/callback"
+    }, function (token, tokenSecret, profile, done) {
+        var db = mongodb();
+        db.users.findOne({'twitter.id':profile.id}, function (err, user) {
+            if (user) {
+                // return user
+                user.name = profile.username;
+                user.pic = profile._json.profile_image_url;
+                user.twitter = profile;
+                user.auth = {token:token, tokenSecret:tokenSecret};
+                db.users.save(user);
+                done(err, user);
+            }
+            else {
+                // create new user
+                var usr = { macs:[], name:profile.username, pic:profile._json.profile_image_url, twitter:profile };
+                db.users.save(usr, function (err, user) {
+                    user.id = user._id.toString();
+                    db.users.save(user);
+                    done(err, user);
+                });
+            }
+        });
+    });
+    normalTwitterStrategy.name = xkey;
+
+    var adminTwitterStrategy = new TwitterStrategy({
+        consumerKey:config.twitterAdmin.key,
+        consumerSecret:config.twitterAdmin.secret,
+        callbackURL:lconfig.baseUrl + "/login/admin/callback"
+    }, function (token, tokenSecret, profile, done) {
+        var db = mongodb();
+        db.users.findOne({'twitter.id':profile.id}, function (err, user) {
+
+            if (!user) {
+                user = {};
+            }
             // return user
             user.name = profile.username;
             user.pic = profile._json.profile_image_url;
             user.twitter = profile;
-            user.auth = {token:token, tokenSecret:tokenSecret};
-            db.users.save(user);
-            done(err, user);
-        }
-        else {
-            // create new user
-            var usr = { macs:[], name:profile.username, pic:profile._json.profile_image_url, twitter:profile };
-            db.users.save(usr, function (err, user) {
-                user.id = user._id.toString();
+            user.authAdmin = {token:token, tokenSecret:tokenSecret};
+            user.domainAdmin = xkey;
+            if (user.id) {
                 db.users.save(user);
                 done(err, user);
-            });
-        }
+            }
+            else {
+                db.users.save(user, function (err, usr) {
+                    usr.id = usr._id.toString();
+                    db.users.save(usr);
+                    done(err, usr);
+                });
+            }
+
+        });
     });
-});
+    adminTwitterStrategy.name = xkey + "-admin";
+    domainStrategies[xkey] = {normal:normalTwitterStrategy, admin:adminTwitterStrategy};
+    passport.use(normalTwitterStrategy);
+    passport.use(adminTwitterStrategy);
+}
 
-var adminTwitterStrategy = new TwitterStrategy({
-    consumerKey:config.twitterAdmin.key,
-    consumerSecret:config.twitterAdmin.secret,
-    callbackURL:config.baseUrl + "/login/admin/callback"
-}, function (token, tokenSecret, profile, done) {
-    var db = mongodb();
-    db.users.findOne({'twitter.id':profile.id}, function (err, user) {
-
-        if (!user) {
-            user = {};
-        }
-        // return user
-        user.name = profile.username;
-        user.pic = profile._json.profile_image_url;
-        user.twitter = profile;
-        user.authAdmin = {token:token, tokenSecret:tokenSecret};
-        if (user.id) {
-            db.users.save(user);
-            done(err, user);
-        }
-        else {
-            db.users.save(user, function (err, usr) {
-                usr.id = usr._id.toString();
-                db.users.save(usr);
-                done(err, usr);
-            });
-        }
-
-    });
-});
-
-adminTwitterStrategy.name = "twitter-admin";
-
-passport.use(normalTwitterStrategy);
-passport.use(adminTwitterStrategy);
 
 exports.user = function (req, res, next) {
     if (req.isAuthenticated()) return next();
@@ -90,7 +98,8 @@ exports.user = function (req, res, next) {
 };
 
 exports.admin = function (req, res, next) {
-    if (req.isAuthenticated() && config.admins[req.user.id]) return next();
+    var lConfig = config.get(req);
+    if (req.isAuthenticated() && lConfig.admins[req.user.id]) return next();
     res.cookie('redirect', req.url);
     res.redirect('/login/admin');
 };
