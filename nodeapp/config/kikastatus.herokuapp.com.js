@@ -16,4 +16,8 @@ exports.admins = {
     '4f95c7f3185c8a01000000dd':true,
     '4f8cb46499663ffd15000001':true,
     '4f8c92908eb7200100000006':true
-}
+};
+
+exports.lang = {
+
+};
