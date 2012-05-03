@@ -3,31 +3,41 @@ var mongodb = require('./db.js'),
     config = require('../config.js');
 
 
-exports.postMessage = function (isOpened, callback) {
-    var consumer = new oauth.OAuth(
+var consumer = exports.consumer = function () {
+    return new oauth.OAuth(
         "https://twitter.com/oauth/request_token",
         "https://twitter.com/oauth/access_token",
         config.twitterAdmin.key, config.twitterAdmin.secret,
         "1.0", config.baseUrl + "/login/admin/callback", "HMAC-SHA1");
-    var db = mongodb();
+};
+
+exports.postMessage = function (isOpened, callback) {
+
     //console.log("Looking for twitter UID");
-    db.users.findOne({id:config.twitterPostUID}, function (err, admin) {
+
+    exports.exec('post',
+        "https://api.twitter.com/1/statuses/update.json",
+        {status:"#хаклаб #skopjehacklab e " + (isOpened ? "отворен" : "затворен")},
+        callback);
+
+};
+
+exports.exec = function (method, url, params, callback) {
+    var db = mongodb();
+    db.users.findOne({id:config.twitterStatus.UID}, function (err, admin) {
+
         if (err || !admin) {
             console.log("Twitter UID not found");
             callback("Could not find twitter post user", null);
             return;
         }
-        //admin.authAdmin.token;
-        //admin.authAdmin.tokenSecret
-        //console.log(admin.authAdmin);
-        consumer.post(
-            "https://api.twitter.com/1/statuses/update.json",
+
+        var cons = consumer();
+        cons[method](url,
             admin.authAdmin.token, admin.authAdmin.tokenSecret,
-            {status:"#хаклаб #skopjehacklab e " + (isOpened ? "отворен" : "затворен")},
-            null,
-            callback
-        );
+            method == 'get' ? callback : params,
+            method == 'get' ? undefined : null,
+            method == 'get' ? undefined : callback);
 
-    })
+    });
 };
-

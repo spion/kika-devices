@@ -2,6 +2,12 @@ var mongodb = require('../models/db.js');
 
 
 module.exports = function(app) {
+    app.get("/status/temps", function(req, res){
+        var db = mongodb();
+        db.updates.find({type:'temperature'}).sort({time:-1}).limit(1).toArray(function(err, temps){
+            res.end(JSON.stringify(temps));
+        });
+    });
 	app.get("/status", function(req, res) {
 		var db = mongodb();
 		var yesterday = new Date().getTime() - 24*60*60*1000;

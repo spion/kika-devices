@@ -10,5 +10,7 @@ module.exports = function() {
 	db.collection('counters');
 	db.collection('statuses');
 	db.collection('users');
+
+    db.collection('updates');
 	return db;
 };

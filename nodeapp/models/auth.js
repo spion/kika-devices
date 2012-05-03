@@ -46,6 +46,7 @@ var normalTwitterStrategy = new TwitterStrategy({
         }
     });
 });
+normalTwitterStrategy.name = 'twitter';
 
 var adminTwitterStrategy = new TwitterStrategy({
     consumerKey:config.twitterAdmin.key,
