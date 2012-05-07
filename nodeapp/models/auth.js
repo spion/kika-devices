@@ -102,6 +102,6 @@ exports.redirect = function (req, res) {
 };
 
 exports.redirectAdmin = function (req, res) {
-    var redirectUrl = req.cookies && req.cookies.redirect ? req.cookies.redirect : '/admin/twitter-test';
+    var redirectUrl = req.cookies && req.cookies.redirect ? req.cookies.redirect : '/admin/users';
     res.redirect(redirectUrl);
 };

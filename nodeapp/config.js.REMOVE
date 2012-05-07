@@ -1,41 +1,48 @@
 // Base URL of the site.
-exports.baseUrl = 'http://kikastatus.herokuapp.com';
-// exports.baseUrl = 'http://localhost:8080';
+exports.baseUrl = 'http://prisutni.spodeli.org';
+//exports.baseUrl = 'http://localhost:8080';
+
 
 // Twitter consumer key and secret
 exports.twitter = {
-	key:'xxx',
-	secret: 'xxxxx'
+    key:'xxx',
+    secret:'yyyy'
 };
 
 // app with write permissions - twitter key and secret
 exports.twitterAdmin = {
-    key:'xxx',
-    secret:'xxxxx'
+    key:'zzzz',
+    secret:'abcabc'
 };
 
 // status updates should be made with this UID
 // 2cm UID
-exports.twitterPostUID = '4f95c7f3185c8a01000000dd';
-// local UID
-//exports.twitterPostUID = '4f8cb46499663ffd15000001';
 
-exports.sessionSecret = 'xxxxx';
+exports.twitterStatus = {
+    // 2cmk UID
+    UID:'4f95c7f3185c8a01000000dd',
+    minutesToTwitOpen:31, //30,
+    minutesToTwitClosed:16, //15,
+    maxTwitterStatusAgeMinutes:300,
+    openedKeyword:'отворен',
+    closedKeyword:'затворен'
+};
+
+// local UID
+//exports.twitterStatus.UID = '4f8cb46499663ffd15000001';
+
+exports.sessionSecret = 'asdasd';
 
 // Default mongodb connect string, if none provided by Heroku
 // note: user and password are mandatory even if empty.
 exports.mongodbConnectionString = 'mongodb://:@localhost:27017/kikadevices';
 
-// Admin users. user.id: value. User ids can be seen in status JSON request from index.html.
+// Admin users. user.id: value. User ids can be seen in status request.
 exports.admins = {
     '4f95c7f3185c8a01000000dd':true,
     '4f8cb46499663ffd15000001':true,
     '4f8c92908eb7200100000006':true
 };
-
-// Push cron duplicate protection. If two pushes are within the specified
-// time interval, the push with the highest count will be used.
-exports.pushDuplicateTimeout = 10000;
 
 
 

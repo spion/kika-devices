@@ -5,6 +5,7 @@
 	<body>
 		<div style="width:620px; margin:auto;">
 			<h1><img src="<%= user.pic %>" style="vertical-align:middle;" alt="<%= user.name %>"> <%= user.name %></h1>
+            <p>UID: <%= user.id %></p>
 			<h2>Листа на MAC адреси</h2>
 			<form method="post" action="/config/update">
 				<textarea name="macs" rows="4" cols="30"><%= user.macs.join("\n") %></textarea>

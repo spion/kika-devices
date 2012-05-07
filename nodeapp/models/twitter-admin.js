@@ -26,18 +26,22 @@ exports.exec = function (method, url, params, callback) {
     var db = mongodb();
     db.users.findOne({id:config.twitterStatus.UID}, function (err, admin) {
 
-        if (err || !admin) {
-            console.log("Twitter UID not found");
+        console.log(config.twitterStatus.UID);
+        //console.log(admin);
+        if (err || !admin || !admin.authAdmin) {
+            console.log("Twitter UID not found or has no admin privileges.");
             callback("Could not find twitter post user", null);
             return;
         }
 
         var cons = consumer();
+        console.log(method.toUpperCase(), url);
         cons[method](url,
             admin.authAdmin.token, admin.authAdmin.tokenSecret,
             method == 'get' ? callback : params,
             method == 'get' ? undefined : null,
             method == 'get' ? undefined : callback);
+
 
     });
 };

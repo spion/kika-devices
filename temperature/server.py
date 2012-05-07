@@ -4,7 +4,6 @@ import urllib2
 import json
 
 S = serial.Serial("/dev/ttyUSB0")
-
 lst = []
 S.flushInput()
 T = S.readline()

@@ -74,30 +74,35 @@ module.exports = function (app) {
                 - config.twitterStatus[currentCounter.count ? 'minutesToTwitOpen' : 'minutesToTwitClosed'] * 1000 * 60 * 60}})
                 .sort({time:-1}).toArray(
                 function (err, counters) {
-                    console.log(counters);
+                    console.log(counters.map(function (c) {
+                        return c.count
+                    }), currentCounter);
                     if (counters.length && counters.reduce(function (allOthers, counter, counterIndex) {
                         return allOthers && (counterIndex >= counters.length - 1 ||
-                            (currentCounter.count ? counter.count : !counter.count));
-                    }, true) && ((counters[counters.length - 1] > 0) != (currentCounter.count > 0))) {
-                        console.log('counter rules satisfied, checking twitter')
+                            (currentCounter.count > 0 == counter.count > 0));
+                    }, true) && ((counters[counters.length - 1].count > 0) != (currentCounter.count > 0))) {
+                        console.log('counter rules satisfied, checking twitter');
                         // url, oauth_token, oauth_token_secret, callback
                         var rightNow = new Date().getTime();
                         var searchKeyword = currentCounter.count > 0
                             ? config.twitterStatus.openedKeyword
                             : config.twitterStatus.closedKeyword;
                         twitterAdmin.exec('get',
-                            'http://api.twitter.com/1/statuses/user_timeline.format',
+                            'https://api.twitter.com/1/statuses/user_timeline.json',
                             null,
-                            function (err, data) {
-                                console.log(err, data);
-                                if (JSON.parse(data).reduce(function (other, item) {
-                                    return other
-                                        && new Date(item.created_at).getTime() > rightNow
+                            function (err, data, response) {
+                                data = JSON.parse(data);
+                                console.log(searchKeyword);
+                                if (!err && data.reduce(function (other, item) {
+                                    return other && new Date(item.created_at).getTime() < rightNow
                                         - 1000 * 60 * config.twitterStatus.maxTwitterStatusAgeMinutes
-                                        && item.text.indexOf(searchKeyword) < 0;
+                                        || item.text.indexOf(searchKeyword) < 0;
+
                                 }, true)) {
-                                    console.log("timeline seems to be ok, posting...")
                                     twitterAdmin.postMessage(currentCounter.count > 0);
+                                }
+                                else {
+                                    console.log("Timeline not ok ", err)
                                 }
                             });
                     }
