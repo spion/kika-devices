@@ -1,106 +1,264 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Уреди во Хаклаб Кика</title>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<style type="text/css">
-			body {
-				font-family: Verdana;
-				font-size: 14px;
-			}
-			#names li a {
-				font-size: 18px;
-				margin-left: 10px;
-			}
+<head>
+    <title>Уреди во Хаклаб Кика</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">
+        body {
+            font-family: Verdana;
+            font-size: 14px;
+        }
 
-			#names li {
-				margin:5px;
-			}
-		</style>
-	</head>
-	<body>
-		<a href="http://github.com/spion/kika-devices"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/30f550e0d38ceb6ef5b81500c64d970b7fb0f028/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67" alt="Fork me on GitHub"></a>	
-		<div style="width:620px; margin:auto;">
-			<h1>Уреди во Хаклаб Кика</h1>
+        #names {
+            list-style: none;
+            clear: both;
+        }
 
-			<h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
+        #names li a {
+            font-size: 18px;
+            margin-left: 10px;
+            color: #A83;
+            text-decoration: none;
 
-			<p>Хаклабот беше <span id="status">напуштен</span> пред <span id="status-dur">0m</span> 
+        }
 
-			<p>Историја</p>
-			<div style="width:600px; height:150px;" id="plot">
-			</div>
+        #names li {
+            margin: 5px;
+            float: left;
+            width: 280px;
+        }
 
-			<p>Присутни</p>
-			<ul id="names">
-			</ul>
+        #names img {
+            width: 30px;
+        }
 
-			<p>Сакаш да учествуваш во листата на присутни? <a href="/config">Логирај се преку Twitter</a> и додај ги твоите MAC адреси. 
-			MAC адресата можеш да ја добиеш со </p>
-			<pre>ifconfig | grep HWaddr</pre>
+        .temp .lcd {
+            background-image: url(/public/img/lcd.png);
+            width: 36px;
+            height: 50px;
+            display: block;
+            float: left;
+        }
 
-		</div>
+        .temp .dot {
+            height: 50px;
+            display: block;
+            font-size: 48px;
+            float: left;
+        }
 
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-		<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
-		<script type="text/javascript">
+        .temp .tag {
+            position:absolute;
+            right:-0.66em;
+            top:-0.66em;
+            font-size:12px;
+            padding:0.1em 0.3em 0.2em 0.3em;
+            background-color:rgba(140,110,70,0.5);
+            text-shadow: 0 0 0.5em #432;
+            color:#fff;
+        }
+        .temp {
+            position:relative;
+            float:left;
+            margin-right:1em;
+            padding: 0.7em 0.5em;
+            background-color: #EEC;
+            width: 9.5em;
+            border: solid 1px #BB8;
+            box-shadow: 0px 0px 10px #bb8;
+            color: rgba(0, 0, 0, 0.5);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
 
-function zeroFill( number, width )
-{
-	width -= number.toString().length;
-	if ( width > 0 )
-	{
-		return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
-	}
-	return number;
-}
+        .clearfix:after {
+            content: ".";
+            display: block;
+            clear: both;
+            visibility: hidden;
+            line-height: 0;
+            height: 0;
+        }
+    </style>
+</head>
+<body>
+<a href="http://github.com/spion/kika-devices"><img style="position: absolute; top: 0; right: 0; border: 0;"
+                                                    src="https://a248.e.akamai.net/assets.github.com/img/30f550e0d38ceb6ef5b81500c64d970b7fb0f028/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67"
+                                                    alt="Fork me on GitHub"></a>
 
-var isPlural = function(num) {
-	return (num % 10 != 1 || num % 100 == 11);
-}
+<div style="width:620px; margin:auto;">
+    <h1>Уреди во Хаклаб Кика</h1>
 
-var getDuration = function(dur) {
-	var minDur = Math.ceil(dur / 1000 / 60);
-	var m = minDur % 60;
-	var h = Math.floor(minDur / 60);
-	var ret = [];
-	if (h > 0) ret.push(h + "h");
-	ret.push(zeroFill(m,2) + "m");
-	return ret.join(" ");
-}
-$.getJSON("/status", { limit: 12*24*7 }, function(json) {
-		var current = json.counters[0];
-		$("#count").html(current.count);
-		$("#status").html(current.count?"отворен":"напуштен");
-		var lastDate;
-		for (var k = 1; k < json.counters.length; ++k) {
-			var item = json.counters[k];
-			lastDate = item.time;
-			if ((!!item.count) != (!!current.count)) {
-				$("#status-dur").html(getDuration(new Date().getTime() - lastDate));
-				break;
-			} 
-			$("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
-		}
+    <h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
 
-		if (isPlural(current.count)) { $("#plural").show(); }
-		else { $("#plural").hide(); }
+    <p>Хаклабот беше <span id="status">напуштен</span> пред <span id="status-dur">0m</span>
 
-		$("#names").html("");
-		for (var k = 0; k < json.present.length; ++k) {
-			var liItem = $("<li></li>");
-			$("<img />").attr({src: json.present[k].pic}).css({'vertical-align': 'middle'}).appendTo(liItem);
-			$("<a></a>").attr({href: 'http://twitter.com/'+json.present[k].name})
-				.html(json.present[k].name).appendTo(liItem);
-			liItem.appendTo($("#names"));
-		}
-		for (var k = 0, plotData = []; k < json.counters.length; ++k) {
-			plotData.push([json.counters[k].time, json.counters[k].count]);			
-		}
-		plotData.reverse();
-		$.plot($("#plot"), [plotData], { xaxis: { mode: "time", tickFormatter: function(val, axis) { var d = new Date(val); return d.toLocaleTimeString().substr(0,5); }} });
+    <p>Историја на присутни</p>
 
-});
+    <div style="width:600px; height:150px;" id="plot">
+    </div>
+
+    <p>Најавени присутни</p>
+    <ul id="names" class="clearfix">
+    </ul>
+
+
+    <p><a href="/temp">Моментална температура (℃) (повеќе...)</a></p>
+
+    <div class="clearfix">
+       <div id="temp_hw" class="temp">
+       </div>
+       <div id="temp_random" class="temp">
+       </div>
+       <div id="temp_lounge" class="temp">
+       </div>
+    </div>
+
+
+
+    <p style="clear:both; padding-top:0.5em;">Сакаш да учествуваш во листата на присутни? <a href="/config">Логирај се
+        преку Twitter</a> и додај ги твоите MAC адреси.
+        MAC адресата можеш да ја добиеш со </p>
+    <pre>ifconfig | grep HWaddr</pre>
+
+</div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+<script type="text/javascript">
+
+    function lcdOffset(num) {
+        var singleDigitW = 36, deltaDigit = 1;
+        var where = ((num ? num : 10) - 1);
+        var pixels = where * (singleDigitW + deltaDigit) - deltaDigit;
+        return pixels;
+    }
+
+    function showLcd(where, temp, tag) {
+
+        temp = new Number(new Number(temp).toFixed(1));
+
+        $(where).html('');
+        if (temp < 0) {
+            temp = Math.abs(temp);
+            $("<div></div>").addClass('dot').html("-").appendTo($(where));
+        }
+        for (var k = 1; k >= -1; --k) {
+
+            var cif = Math.floor(temp / Math.pow(10, k)) % 10;
+            if (k == -1) {
+                $("<div></div>").addClass('dot').html(".").appendTo($(where));
+            }
+            $('<div></div>').appendTo($(where)).addClass('lcd')
+                    .css('background-position', 0 - lcdOffset(cif));
+
+        }
+
+        $("<div />").addClass('tag').text(tag).appendTo($(where));
+        $("<div />").addClass('clearfix').appendTo($(where));
+    }
+
+
+
+
+    function zeroFill(number, width) {
+        width -= number.toString().length;
+        if (width > 0) {
+            return new Array(width + (/\./.test(number) ? 2 : 1)).join('0') + number;
+        }
+        return number;
+    }
+
+    var isPlural = function (num) {
+        return (num % 10 != 1 || num % 100 == 11);
+    }
+
+    var getDuration = function (dur) {
+        var minDur = Math.ceil(dur / 1000 / 60);
+        var m = minDur % 60;
+        var h = Math.floor(minDur / 60);
+        var ret = [];
+        if (h > 0) ret.push(h + "h");
+        ret.push(zeroFill(m, 2) + "m");
+        return ret.join(" ");
+    }
+
+    var cosm = {};
+    cosm.key = 'TgZljX6Yu10Bnwja0xOtSu6IXh6SAKw4UlBualJSajZXcz0g';
+    cosm.feed = function(path, cb) {
+        $.ajax({
+            dataType:'json',
+            url:'http://api.cosm.com/v2/feeds/' + path,
+            headers: {
+                'X-ApiKey': cosm.key
+            },
+            success: function(data) {
+                cb(data);
+        }});
+    };
+
+
+
+    var updateStatus = function () {
+        //$.getJSON("/status/temps", function (temps) {
+            //$("#temperature").text(temps[0].values.s1.toFixed(1));
+            //showLcd(temps[0].values.s1);
+            //});
+        cosm.feed('64655/datastreams/hardware_room', function(data) {
+                showLcd("#temp_hw", data.current_value, "hw");
+                });
+
+        cosm.feed('64655/datastreams/random_room', function(data) {
+                showLcd("#temp_random", data.current_value, "random");
+                });
+        cosm.feed('64655/datastreams/lounge_area', function(data) {
+                showLcd("#temp_lounge", data.current_value, "lounge");
+                });
+
+
+        $.getJSON("/status", { limit:12 * 24 * 7 }, function (json) {
+            var current = json.counters[0];
+            $("#count").html(current.count);
+            $("#status").html(current.count ? "отворен" : "напуштен");
+            var lastDate;
+            for (var k = 1; k < json.counters.length; ++k) {
+                var item = json.counters[k];
+                lastDate = item.time;
+                if ((!!item.count) != (!!current.count)) {
+                    $("#status-dur").html(getDuration(new Date().getTime() - lastDate));
+                    break;
+                }
+                $("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
+            }
+
+            if (isPlural(current.count)) {
+                $("#plural").show();
+            }
+            else {
+                $("#plural").hide();
+            }
+
+            $("#names").html("");
+            for (var k = 0; k < json.present.length; ++k) {
+                var liItem = $("<li></li>");
+                $("<img />").attr({src:json.present[k].pic}).css({'vertical-align':'middle'}).appendTo(liItem);
+                $("<a></a>").attr({href:'http://twitter.com/' + json.present[k].name})
+                        .html(json.present[k].name).appendTo(liItem);
+                liItem.appendTo($("#names"));
+            }
+            for (var k = 0, plotData = []; k < json.counters.length; ++k) {
+                plotData.push([json.counters[k].time, json.counters[k].count]);
+            }
+            plotData.reverse();
+            $.plot($("#plot"), [plotData], { xaxis:{ mode:"time", tickFormatter:function (val, axis) {
+                var d = new Date(val);
+                return d.toLocaleTimeString().substr(0, 5);
+            }} });
+
+        });
+        window.setTimeout(updateStatus, 3 * 60 * 1000);
+    }
+
+    updateStatus();
 </script>
 </body>
 </html>
