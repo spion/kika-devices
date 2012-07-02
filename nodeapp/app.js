@@ -13,7 +13,52 @@ var app = module.exports = express.createServer();
 
 // Configuration
 
+<<<<<<< HEAD
 app.configure(function () {
+=======
+app.configure(function(){
+
+	app.set('views', __dirname + '/views');
+	app.set('view engine', 'ejs');
+
+	app.set('view options', {
+		layout: false
+	});
+	
+	app.use(express.cookieParser());
+	app.use(express.session({ secret: config.sessionSecret }));
+
+	
+	var bodyParser = express.bodyParser();
+	app.use(function(req, res, next) {
+		var ctype = req.header('content-type');
+		if (ctype == 'application/x-www-form-urlencoded'
+			|| ctype == 'application/json'
+			|| ctype == 'multipart/form-data') {
+			bodyParser(req, res, next);
+		}
+		else {
+			var data=[];
+			req.setEncoding('utf8');
+			req.on('data', function(chunk) { 
+				data.push(chunk);
+			});
+			req.on('end', function() {
+				req.rawBody = data.join('');
+				next();
+			});
+		}
+	});
+
+	
+	app.use(express.methodOverride());
+
+	app.use(passport.initialize());
+	app.use(passport.session());
+
+    app.use('/public', express.static(__dirname + '/public'));
+	app.use(app.router);
+>>>>>>> 7ed6eca0b169c8f00346dd365bc2d27601c49b08
 
     app.set('views', __dirname + '/views');
     app.set('view engine', 'ejs');
