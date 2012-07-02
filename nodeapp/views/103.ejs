@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Слушатели на 103 - Кика</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+</head>
+<body>
+<a href="http://github.com/spion/kika-devices"><img style="position: absolute; top: 0; right: 0; border: 0;"
+                                                    src="https://a248.e.akamai.net/assets.github.com/img/30f550e0d38ceb6ef5b81500c64d970b7fb0f028/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67"
+                                                    alt="Fork me on GitHub"></a>
+
+<div style="width:620px; margin:auto;">
+    <h1>Слушатели на 103 - Кика</h1>
+
+    <h2>Моментално има <b id="count">??</b> слушател<span id="plural">и</span>.</h2>
+
+
+    <p>Историја</p>
+
+    <div style="width:600px; height:150px;" id="plot">
+    </div>
+
+</div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/public/js/stat103.js"></script>
+<script>
+
+    var isPlural = function (num) {
+        return (num % 10 != 1 || num % 100 == 11);
+    }
+
+    var getDuration = function (dur) {
+        var minDur = Math.ceil(dur / 1000 / 60);
+        var m = minDur % 60;
+        var h = Math.floor(minDur / 60);
+        var ret = [];
+        if (h > 0) ret.push(h + "h");
+        ret.push(zeroFill(m, 2) + "m");
+        return ret.join(" ");
+    }
+    var updateStatus = function () {
+        get103history(function (json) {
+            var current = json[0];
+            $("#count").html(current.value);
+            if (isPlural(current.count)) {
+                $("#plural").show();
+            }
+            else {
+                $("#plural").hide();
+            }
+            for (var k = 0, plotData = []; k < json.length; ++k) {
+                plotData.push([json[k].time, json[k].value]);
+            }
+            plotData.reverse();
+            $.plot($("#plot"), [plotData], { xaxis:{ mode:"time", tickFormatter:function (val, axis) {
+                var d = new Date(val);
+                return d.toLocaleTimeString().substr(0, 5);
+            }} });
+
+        });
+        window.setTimeout(updateStatus, 3 * 60 * 1000);
+    };
+
+    updateStatus();
+</script>
+</body>
+</html>
