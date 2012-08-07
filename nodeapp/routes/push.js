@@ -39,10 +39,7 @@ module.exports = function (app) {
             var macs = macMap(req.rawBody.split("\n"));
 
             var countedMacs = 0;
-            for (var key in macs) {
-                if (!blackListMac[key]) ++countedMacs;
-            }
-
+            for (var key in macs) if (!blackListMac[key]) ++countedMacs;
 
             var peopleIds = [];
             for (var k = 0; k < users.length; ++k) {
@@ -71,19 +68,19 @@ module.exports = function (app) {
                 people:peopleIds.length
             };
             db.counters.find({time:{$gt:currentCounter.time
-                - config.twitterStatus[currentCounter.count ? 'minutesToTwitOpen' : 'minutesToTwitClosed'] * 1000 * 60 * 60}})
+                - config.twitterStatus[currentCounter.count ? 'minutesToTwitOpen' : 'minutesToTwitClosed'] * 1000 * 60}})
                 .sort({time:-1}).toArray(
                 function (err, counters) {
-                    console.log(counters.map(function (c) {
-                        return c.count
-                    }), currentCounter);
-                    if (counters.length && counters.reduce(function (allOthers, counter, counterIndex) {
-                        return allOthers && (counterIndex >= counters.length - 1 ||
+                    if (
+                        counters.length && counters.reduce(function (allOthers, counter, counterIndex) {
+                        return allOthers && (counterIndex == counters.length - 1 ||
                             (currentCounter.count > 0 == counter.count > 0));
-                    }, true) && ((counters[counters.length - 1].count > 0) != (currentCounter.count > 0))) {
+                    }, true) && ((counters[counters.length - 1].count > 0) != (currentCounter.count > 0))
+                        ) {
                         console.log('counter rules satisfied, checking twitter');
                         // url, oauth_token, oauth_token_secret, callback
                         var rightNow = new Date().getTime();
+                        // "created_at": "Mon Jun 27 19:32:19 +0000 2011",
                         var searchKeyword = currentCounter.count > 0
                             ? config.twitterStatus.openedKeyword
                             : config.twitterStatus.closedKeyword;
@@ -93,16 +90,24 @@ module.exports = function (app) {
                             function (err, data, response) {
                                 data = JSON.parse(data);
                                 console.log(searchKeyword);
-                                if (!err && data.reduce(function (other, item) {
-                                    return other && new Date(item.created_at).getTime() < rightNow
+                                var alreadyPosted = data.filter(function (item) {
+                                    console.log([
+                                        (rightNow - new Date(item.created_at).getTime()) / 1000 / 60,
+                                        item.text.indexOf(searchKeyword) >= 0
+                                    ]);
+                                    return (new Date(item.created_at).getTime() > rightNow
                                         - 1000 * 60 * config.twitterStatus.maxTwitterStatusAgeMinutes
-                                        || item.text.indexOf(searchKeyword) < 0;
-
-                                }, true)) {
-                                    twitterAdmin.postMessage(currentCounter.count > 0);
+                                        && item.text.indexOf(searchKeyword) >= 0);
+                                });
+                                console.log(alreadyPosted.map(function (i) {
+                                    return [i.created_at, i.text];
+                                }));
+                                if (!err && !alreadyPosted.length) {
+                                    console.log("Time line OK, would post message");
+                                    //twitterAdmin.postMessage(currentCounter.count > 0);
                                 }
                                 else {
-                                    console.log("Timeline not ok ", err)
+                                    console.log("Timeline NOT ok, NOT posting message", err)
                                 }
                             });
                     }

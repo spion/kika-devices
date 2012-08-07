@@ -1,12 +1,13 @@
-
 /**
  * Module dependencies.
  */
 
 var express = require('express'),
-	fs = require('fs'),
-	passport = require('passport'),
-	config = require('./config.js');
+    fs = require('fs'),
+    passport = require('passport'),
+    config = require('./config.js'),
+    http = require('http'),
+    mongodb = require('./models/db.js');
 
 var app = module.exports = express.createServer();
 
@@ -54,34 +55,66 @@ app.configure(function(){
 
     app.use('/public', express.static(__dirname + '/public'));
 	app.use(app.router);
-
-
 });
 
-app.configure('development', function(){
-	app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+app.configure('development', function () {
+    app.use(express.errorHandler({ dumpExceptions:true, showStack:true }));
 });
 
-app.configure('production', function(){
-	app.use(express.errorHandler());
+app.configure('production', function () {
+    app.use(express.errorHandler());
 });
-
 
 
 // Routes
 
 
-
-
-var files = fs.readdirSync(__dirname + '/routes');
+var files = fs.readdirSync(__dirname + '/routes')
+    .filter(function (f) {
+        return f.indexOf('.') != 0
+    });
 for (var k = 0; k < files.length; ++k) {
-	var router = require("./routes/" + files[k]);
-	router(app);
+    var router = require("./routes/" + files[k]);
+    router(app);
 }
 
 
 var hPort = process.env.PORT || 8080;
 
-app.listen(hPort, function(){
-	console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+app.listen(hPort, function () {
+    console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
+
+// 103 fetcher
+
+var quickGet = function () {
+
+};
+
+setInterval(function () {
+    http.get({
+        host:'radio.spodeli.org',
+        port:80,
+        path:'/listeners.xsl?mount=/103.ogg'
+    }, function (res) {
+        //console.log('STATUS: ' + res.statusCode);
+        //console.log('HEADERS: ' + JSON.stringify(res.headers));
+        res.setEncoding('utf8');
+        var data = [];
+        res.on('data', function (chunk) {
+            data.push(chunk);
+        });
+        res.on('end', function () {
+            var cnt = parseInt(data.join(''), 10)
+
+            var db = mongodb();
+            var doc = {
+                value:cnt - 1,
+                type:'103_listeners',
+                time:new Date().getTime()
+            };
+            console.log(doc)
+            db.updates.save(doc);
+        })
+    });
+}, 5 * 60000);
