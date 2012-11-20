@@ -14,8 +14,8 @@ var mongodb = function (dbURL) {
     db.collection('counters');
     db.collection('statuses');
     db.collection('users');
-
     db.collection('updates');
+    db.collection('logs');
     return db;
 };
 

@@ -217,8 +217,14 @@
 
         $.getJSON("/status", { limit:12 * 24 * 7 }, function (json) {
             var current = json.counters[0];
-            $("#count").html(current.count);
-            $("#status").html(current.count ? "отворен" : "напуштен");
+            var recentEnough = new Date().getTime() - current.time < 1000*60*16;
+            if (recentEnough) {
+                $("#count").html(current.count);
+                $("#status").html(current.count ? "отворен" : "напуштен");
+            } else {
+                $("#count").html("непознат број");
+                $("#status").html("запуштен");
+            }
             var lastDate;
             for (var k = 1; k < json.counters.length; ++k) {
                 var item = json.counters[k];
@@ -230,7 +236,7 @@
                 $("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
             }
 
-            if (isPlural(current.count)) {
+            if (recentEnough || isPlural(current.count)) {
                 $("#plural").show();
             }
             else {
