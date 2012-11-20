@@ -3,8 +3,11 @@ var config = require('../config.js'),
     mongodb = require('../models/db.js');
 
 module.exports = function (app) {
+    app.get('/cosm', function(req, res) {
+        res.render('cosm');
+    });
     app.get('/temp', function(req, res) {
-        res.render('temp');
+        res.render('cosm');
     });
     app.get('/', function (req, res) {
         if (config.baseUrl.indexOf(req.headers.host) < 0) {
