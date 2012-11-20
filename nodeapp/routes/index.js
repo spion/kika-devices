@@ -9,6 +9,9 @@ module.exports = function (app) {
     app.get('/temp', function(req, res) {
         res.render('cosm');
     });
+    app.get('/cosm', function(req, res) {
+        res.render('cosm');
+    });
     app.get('/', function (req, res) {
         if (config.baseUrl.indexOf(req.headers.host) < 0) {
             res.redirect(config.baseUrl);
