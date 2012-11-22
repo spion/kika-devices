@@ -76,7 +76,7 @@ var updateStatus = function () {
     cosm.feed('64655', function(data) {
         showLcd("#temp_hw", data.datastreams[0].current_value, "hw");
         showLcd("#temp_random", data.datastreams[3].current_value, "random");
-        showLcd("#temp_lounge", data.datastreams[2].current_value, "lounge");
+        showLcd("#temp_lounge", data.datastreams[1].current_value, "lounge");
     });
 
     cosm.feed('86779/datastreams/hacklab_status', {
@@ -113,17 +113,17 @@ var updateStatus = function () {
 
     $.getJSON("/status", { limit:12 * 24 * 7 }, function (json) {
         var current = json.counters[0];
-        var recentEnough = new Date().getTime() - current.time < 1000*60*16;
+        var recentEnough = new Date().getTime() - current.time < 1000*60*32;
         if (recentEnough) $("#count").html(current.count);
         else $("#count").html("непознат број");
-
+        
         if (recentEnough || isPlural(current.count)) $("#plural").show();       
         else $("#plural").hide();
 
         $("#names").html("");
         for (var k = 0; k < json.present.length; ++k) {
             var liItem = $("<li></li>");
-            $("<img />").attr({src:json.present[k].pic}).css({'vertical-align':'middle'}).appendTo(liItem);
+            $("<img />").attr({src:json.present[k].pic}).appendTo(liItem);
             $("<a></a>").attr({href:'http://twitter.com/' + json.present[k].name})
                 .html(json.present[k].name).appendTo(liItem);
             liItem.appendTo($("#names"));
