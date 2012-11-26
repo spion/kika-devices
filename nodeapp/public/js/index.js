@@ -73,6 +73,16 @@ cosm.feed = function (path, params, cb) {
 
 
 var updateStatus = function () {
+    var plotopt = { 
+        xaxis:{ 
+            mode:"time", 
+            tickFormatter:function (val, axis) {
+                var d = new Date(val);
+                return d.toLocaleTimeString().substr(0, 5);
+            },
+        },
+        legend: {position: 'nw'}
+    };
     cosm.feed('64655', function(data) {
         showLcd("#temp_hw", data.datastreams[0].current_value, "hw");
         showLcd("#temp_random", data.datastreams[3].current_value, "random");
@@ -132,12 +142,21 @@ var updateStatus = function () {
             plotData.push([json.counters[k].time, json.counters[k].count]);
         }
         plotData.reverse();
-        $.plot($("#plot"), [plotData], { xaxis:{ mode:"time", tickFormatter:function (val, axis) {
-            var d = new Date(val);
-            return d.toLocaleTimeString().substr(0, 5);
-        }} });
-
+        $.plot($("#plot"), [plotData], plotopt);
     });
+
+    cosm.feed('64655', {start: new Date(Date.now() - 1000*60*60*24).toISOString(), limit:300}, function(data) { 
+        var series = data.datastreams.map(function(ds) { 
+            return {
+                label: ds.id, 
+                data: ds.datapoints.map(function(el) {
+                    return [new Date(el.at).getTime(), el.value - 0]; 
+                }) 
+            } 
+        });
+        $.plot($("#temps"), series, plotopt);
+    });
+
     window.setTimeout(updateStatus, 3 * 60 * 1000);
 }
 
