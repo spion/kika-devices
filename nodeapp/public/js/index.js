@@ -129,13 +129,14 @@ var updateStatus = function() {
                 tickFormatter: function(val, axis) {
                     var d = new Date(val);
                     return d.toLocaleTimeString().substr(0, 5);
-                },
+                }
             },
             legend: {position: 'nw'},
             grid: {markings: markings}
         };
 
         // Plot ALL the charts!
+
 
         var json = jsonApp;   
         var current = json.counters[0];
@@ -162,7 +163,9 @@ var updateStatus = function() {
             plotData.push([json.counters[k].time, json.counters[k].count]);
         }
         plotData.reverse();
-        $.plot($("#plot"), [plotData], plotopt);
+        
+        var plotPeople = $.extend(true, plotopt, {yaxis: {tickDecimals: 0}});
+        $.plot($("#plot"), [plotData], plotPeople);
 
 
         showLcd("#temp_hw", data.datastreams[0].current_value, "hw");
