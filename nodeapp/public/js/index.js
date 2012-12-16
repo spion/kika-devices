@@ -8,7 +8,7 @@ function lcdOffset(num) {
 
 function showLcd(where, temp, tag) {
     
-    temp = new Number(new Number(temp).toFixed(1));
+    temp = parseFloat(parseFloat(temp).toFixed(1));
     
     $(where).html('');
     if (temp < 0) {
@@ -39,7 +39,7 @@ function zeroFill(number, width) {
 
 var isPlural = function(num) {
     return (num % 10 != 1 || num % 100 == 11);
-}
+};
 
 var getDuration = function(dur) {
     var minDur = Math.ceil(dur / 1000 / 60);
@@ -50,7 +50,7 @@ var getDuration = function(dur) {
         ret.push(h + "h");
     ret.push(zeroFill(m, 2) + "m");
     return ret.join(" ");
-}
+};
 
 var cosm = {};
 cosm.key = 'TgZljX6Yu10Bnwja0xOtSu6IXh6SAKw4UlBualJSajZXcz0g';
@@ -69,7 +69,7 @@ cosm.feed = function(path, params, cb) {
     };
     if (cb) ajax.success = cb;
     return $.ajax(ajax);
-}
+};
 
 
 
@@ -102,7 +102,7 @@ var updateStatus = function() {
             return ix < 1 || jc_rev[ix - 1].count != el.count || ix == jc_rev.length - 1;
         });
         var markings = changepoints.map(function(el, ix) {
-            var end = el.count == 0 && ix < changepoints.length - 1 ? changepoints[ix + 1].time : el.time;
+            var end = el.count === 0 && ix < changepoints.length - 1 ? changepoints[ix + 1].time : el.time;
             return {xaxis: {from: el.time, to: end},color: "#f5f5f5"};
         });
 
@@ -174,20 +174,21 @@ var updateStatus = function() {
         var series = data.datastreams.map(function(ds) {
             return {
                 label: ds.id,
-            data: ds.datapoints.map(function(el) {
-                return [new Date(el.at).getTime(), el.value - 0];
-            })
-            }
+                data: ds.datapoints.map(function(el) {
+                    return [new Date(el.at).getTime(), el.value - 0];
+                })
+            };
         });
         $.plot($("#temps"), series, plotopt);
 
     });
 
     
-}
+};
 
-updateStatus();
-
+$(function() {
+    updateStatus();
+});
 window.setInterval(updateStatus, 3 * 60 * 1000);
 
 
