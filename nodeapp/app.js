@@ -9,7 +9,7 @@ var express = require('express'),
     http = require('http'),
     mongodb = require('./models/db.js');
 
-var app = module.exports = express.createServer();
+var app = module.exports = express(); //.createServer();
 
 // Configuration
 
@@ -21,7 +21,8 @@ app.configure(function(){
 	app.set('view options', {
 		layout: false
 	});
-	
+
+
 	app.use(express.cookieParser());
 	app.use(express.session({ secret: config.sessionSecret }));
 
@@ -53,6 +54,11 @@ app.configure(function(){
 	app.use(passport.initialize());
 	app.use(passport.session());
 
+    app.use(function(req, res, next) {
+        res.setHeader('Access-Control-Allow-Origin', 'http://api.cosm.com');
+        next();
+    });    
+
     app.use('/public', express.static(__dirname + '/public'));
 	app.use(app.router);
 });
@@ -82,7 +88,7 @@ for (var k = 0; k < files.length; ++k) {
 var hPort = process.env.PORT || 8080;
 
 app.listen(hPort, function () {
-    console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+    console.log("Express server in %s mode", app.settings.env);
 });
 
 // 103 fetcher

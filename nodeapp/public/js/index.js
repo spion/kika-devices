@@ -60,12 +60,12 @@ cosm.feed = function(path, params, cb) {
         params = {};
     }
     var ajax = {
+        type:'get',
         data: params,
         dataType: 'json',
-        url: 'http://api.cosm.com/v2/feeds/' + path,
-        headers: {
-            'X-ApiKey': cosm.key
-        }
+        //url: 'http://api.cosm.com/v2/feeds/' + path,
+        url: '/cosm-feeds/' + path,
+        headers: { 'X-ApiKey': cosm.key }
     };
     if (cb) ajax.success = cb;
     return $.ajax(ajax);
@@ -75,14 +75,23 @@ cosm.feed = function(path, params, cb) {
 
 var updateStatus = function() {
 
-    var statusCosmProm = cosm.feed('86779/datastreams/hacklab_status', {
-        start: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
-    }), statusAppProm  = $.getJSON("/status", {limit: 12 * 24 * 7
-    }), temperaturesProm = cosm.feed('64655', {
-        start: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),limit: 300
-    });
+    var yesterday = new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString();
+
+    var statusCosmProm   = cosm.feed('86779/datastreams/hacklab_status', {start: yesterday}), 
+        statusAppProm    = $.getJSON("/status", {limit: 12 * 24 * 7}), 
+        temperaturesProm = cosm.feed('64655', {start: yesterday, limit: 300});
 
 
+    function makeFail(tag) {
+        return function(err) { console.log(tag + " failed " + JSON.stringify(err)); };
+    }
+
+    statusCosmProm.fail(makeFail("statusCosmProm"));
+    statusAppProm.fail(makeFail("statusAppProm"));
+    temperaturesProm.fail(makeFail("temperaturesProm"));
+
+
+    console.log("Waiting for promises");
     $.when(statusCosmProm, statusAppProm, temperaturesProm).then(function(res, json, data) {
         res = res[0]; json = json[0]; data = data[0];
 
@@ -181,6 +190,8 @@ var updateStatus = function() {
         });
         $.plot($("#temps"), series, plotopt);
 
+    }, function(err1, err2, err3) {
+        console.log("Errors" + JSON.stringify(err1) +" "+ err2);
     });
 
     
@@ -189,6 +200,7 @@ var updateStatus = function() {
 $(function() {
     updateStatus();
 });
+
 window.setInterval(updateStatus, 3 * 60 * 1000);
 
 
