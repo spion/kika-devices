@@ -61,8 +61,8 @@ module.exports = function(app) {
                 res.on('error', function() { });
                 try { res.end("" + err, 500); } catch (e) { }
             });
-            req.pipe(preq);
-            preq.end();
+            if (~['post','put'].indexOf(req.method.toLowerCase())) req.pipe(preq);
+            else preq.end();
 
         };
     };
