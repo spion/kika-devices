@@ -12,7 +12,12 @@ module.exports = function(app) {
         var self = {}, objs = {};
 
         self.add = function(url, pres) {
-            var obj = {time: Date.now() / 1000, headers: pres.headers, statusCode: pres.statusCode, data: []};
+            var obj = {
+                time: Date.now() / 1000, 
+                headers: pres.headers, 
+                statusCode: pres.statusCode, 
+                data: []
+            };
             pres.on('data', function(d) { 
                 obj.data.push(d); 
             });
@@ -30,8 +35,12 @@ module.exports = function(app) {
 
         self.serve = function(url, res) {
             var pres = objs[url];
-            res.writeHead(pres.statusCode, "", pres.headers);
-            res.end(Buffer.concat(pres.data));
+            if (pres) {
+                res.writeHead(pres.statusCode, "", pres.headers);
+                res.end(Buffer.concat(pres.data));
+            } else {
+                res.end("{}");
+            }
             return self;
         };
 
@@ -44,17 +53,21 @@ module.exports = function(app) {
     var proxy = function (path) {
         return function (req, res) {
             var real_url = path + req.url.replace(/^\//, '');
-            //if (cache.has(real_url, 300)) return cache.serve(real_url, res);
-            
             var requrl = url.parse(real_url);
+
+            if (cache.has(requrl.pathname, 180))
+                return cache.serve(requrl.pathname, res);
+            else 
+                cache.serve(requrl.pathname, res);
+
             requrl.method = req.method;
             requrl.headers = req.headers;
             requrl.headers.host = requrl.host;
             var preq = http.request(requrl, function (pres) {
                 console.log(req.method, real_url, "OK");
-                res.writeHead(pres.statusCode, "", pres.headers);
-                pres.pipe(res);
-                //cache.add(real_url, pres);
+                //res.writeHead(pres.statusCode, "", pres.headers);
+                //pres.pipe(res);
+                cache.add(requrl.pathname, pres);
             });
             preq.on('error', function (err) {
                 console.log(req.method, real_url, "FAIL:", err);
