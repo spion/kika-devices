@@ -1,13 +1,11 @@
-#!/bin/bash
+#! /bin/bash
+BASEDIR=$(readlink -f $(dirname $0))
 
-#basePath='/root/kika-devices';
+source "$BASEDIR/.config"
 
-# Automatic basePath with bash
-# Used because the cron may run the script from a different working directory
-basePath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-iface=`cat $basePath/.config-iface`
-pushurl=`cat $basePath/.config-url`
-arp -ni $iface | awk '{print $3}' | grep ':' | sort | uniq | curl $pushurl --data-binary @- -H"Content-Type:text/plain"
-
-
+/usr/sbin/arp -ni $IFACE |
+    grep "ether.*$IFACE" |
+    awk '{print $3}' | 
+    sort | 
+    uniq |
+curl -q $PUSHURL --data-binary @- -H"Content-Type:text/plain"
