@@ -4,10 +4,6 @@ var http = require('http'),
 
 module.exports = function(app) {
 
-
-
-    // Cache doesnt work right now.
-    //
     var cache = (function cache() {
         var self = {}, objs = {};
 
@@ -29,7 +25,7 @@ module.exports = function(app) {
 
         self.has = function(url, maxage) {
             //console.log(objs);
-            console.log(url, objs);
+            //console.log(url, objs);
             return objs[url] && Date.now() / 1000 - objs[url].time < maxage
         };
 

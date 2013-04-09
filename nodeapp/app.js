@@ -91,12 +91,9 @@ app.listen(hPort, function () {
     console.log("Express server in %s mode", app.settings.env);
 });
 
-// 103 fetcher
+// 103 fetcher, disabled.
 
-var quickGet = function () {
-
-};
-
+/*
 setInterval(function () {
     http.get({
         host:'radio.spodeli.org',
@@ -124,3 +121,4 @@ setInterval(function () {
         })
     });
 }, 5 * 60000);
+*/

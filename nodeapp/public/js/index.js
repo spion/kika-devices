@@ -96,11 +96,14 @@ var updateStatus = function() {
         res = res[0]; json = json[0]; data = data[0];
 
         var jsonApp = json;
+        try {
         var json = {
             counters: res.datapoints.map(function(dp) {
                 return {count: dp.value - 0,time: new Date(dp.at).getTime()};
             }).reverse()
         };
+        } catch (e) { var json = {counters: []}; }
+
         json.counters.unshift({
             count: res.current_value - 0,
             time: new Date(res.at).getTime()
@@ -132,6 +135,7 @@ var updateStatus = function() {
             }
             $("#status-dur").html("повеќе од " + getDuration(new Date().getTime() - lastDate));
         }
+
         var plotopt = {
             xaxis: {
                 mode: "time",
@@ -183,9 +187,9 @@ var updateStatus = function() {
         var series = data.datastreams.map(function(ds) {
             return {
                 label: ds.id,
-                data: ds.datapoints.map(function(el) {
+                data: ds.datapoints ? ds.datapoints.map(function(el) {
                     return [new Date(el.at).getTime(), el.value - 0];
-                })
+                }) : []
             };
         });
         $.plot($("#temps"), series, plotopt);

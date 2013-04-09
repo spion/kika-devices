@@ -11,11 +11,8 @@ var macMap = function (arr) {
     return map;
 };
 
-var blackListMac = {
-    '':true,
-    '00:0c:76:5d:1c:9c':true,
-    '78:e4:00:ee:42:88':true
-};
+
+var blackListMac = config.blacklist || {};
 
 module.exports = function (app) {
     app.post('/push/update', function (req, res) {
@@ -39,6 +36,8 @@ module.exports = function (app) {
             var macs = macMap(req.rawBody.split("\n"));
 
             var countedMacs = 0;
+            console.log("Macs", macs);
+
             for (var key in macs) if (!blackListMac[key]) ++countedMacs;
 
             var peopleIds = [];
@@ -87,20 +86,20 @@ module.exports = function (app) {
                         twitterAdmin.exec('get',
                             'https://api.twitter.com/1/statuses/user_timeline.json',
                             null,
-                            function (err, data, response) {
+                            function (err, data) {
                                 data = JSON.parse(data);
                                 console.log(searchKeyword);
                                 var alreadyPosted = data.filter(function (item) {
                                     console.log([
-                                        (rightNow - new Date(item.created_at).getTime()) / 1000 / 60,
+                                        (rightNow - new Date(item['created_at']).getTime()) / 1000 / 60,
                                         item.text.indexOf(searchKeyword) >= 0
                                     ]);
-                                    return (new Date(item.created_at).getTime() > rightNow
+                                    return (new Date(item['created_at']).getTime() > rightNow
                                         - 1000 * 60 * config.twitterStatus.maxTwitterStatusAgeMinutes
                                         && item.text.indexOf(searchKeyword) >= 0);
                                 });
                                 console.log(alreadyPosted.map(function (i) {
-                                    return [i.created_at, i.text];
+                                    return [i['created_at'], i.text];
                                 }));
                                 if (!err && !alreadyPosted.length) {
                                     console.log("Time line OK, would post message");
@@ -111,7 +110,7 @@ module.exports = function (app) {
                                 }
                             });
                     }
-                    db.counters.save(currentCounter, function (err, cnt) {
+                    db.counters.save(currentCounter, function () {
                         res.end("OK\n");
                     });
                 });
