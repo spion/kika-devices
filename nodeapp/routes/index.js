@@ -9,7 +9,7 @@ module.exports = function (app) {
     app.get('/temp', function(req, res) {
         res.render('cosm');
     });
-    app.get('/cosm', function(req, res) {
+    app.get('/xively', function(req, res) {
         res.render('cosm');
     });
     app.get('/', function (req, res) {
