@@ -11,7 +11,9 @@
     "passport-twitter": "~0.1.4",
     "passport": "~0.1.15",
     "express": "~3.0.5",
-    "mongodb-wrapper": "~0.4.0"
+    "mongodb-wrapper": "~0.4.0",
+    "async": "~0.2.9",
+    "request": "~2.25.0"
   },
   "engines": {
     "node": "0.8.x",

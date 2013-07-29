@@ -1,80 +1,63 @@
 var http = require('http'),
     url = require('url'),
-    path = require('path');
+    path = require('path'),
+    async = require('async'),
+    request = require('request');
 
 module.exports = function(app) {
 
-    var cache = (function cache() {
-        var self = {}, objs = {};
+    function qs(obj) {
+        var str = [];
+        for (var key in obj) if (obj.hasOwnProperty(key))
+            str.push(key + '=' + obj[key]);
+        var jstr = str.join('&');
+        return jstr.length ? '?' + jstr : '';    
+    }
 
-        self.add = function(url, pres) {
-            var obj = {
-                time: Date.now() / 1000, 
-                headers: pres.headers, 
-                statusCode: pres.statusCode, 
-                data: []
+    function urlify(base, subpath, params) {
+        return url.parse(base + subpath + qs(params));
+    }
+
+
+
+    var cache = {};
+
+    function updateCache() {
+        var yesterday = new Date(Date.now() - 1000 * 86400).toISOString();
+        var feeds = [{
+                url:'86779/datastreams/hacklab_status', 
+                params: {start: yesterday} 
+            },{
+                url: '64655', 
+                params: {start: yesterday, limit:300}
+            }];
+        var urls = feeds.map(function(f) { 
+            return {
+                url: urlify('http://api.cosm.com/v2/feeds/', f.url, f.params),
+                headers: {
+                    'X-ApiKey':'TgZljX6Yu10Bnwja0xOtSu6IXh6SAKw4UlBualJSajZXcz0g'
+                }
             };
-            pres.on('data', function(d) { 
-                obj.data.push(d); 
+        });
+        async.map(urls, function(item, cb) { 
+            request(item, function(err, res, body) {
+                cb(err, body);
             });
-            pres.on('end', function() {
-                objs[url] = obj;
-            });
-            return self;
-        }
-
-        self.has = function(url, maxage) {
-            //console.log(objs);
-            //console.log(url, objs);
-            return objs[url] && Date.now() / 1000 - objs[url].time < maxage
-        };
-
-        self.serve = function(url, res) {
-            var pres = objs[url];
-            if (pres) {
-                res.writeHead(pres.statusCode, "", pres.headers);
-                res.end(Buffer.concat(pres.data));
-            } else {
-                res.end("{}");
+        }, function(err, results) {
+            if (err) throw err;
+            for (var k = 0; k < results.length; ++k) {
+                cache[feeds[k].url] = results[k];
             }
-            return self;
-        };
-
-        return self;
-        
-    }());
+        });
+    }
+    setInterval(updateCache, 300 * 1000);
+    updateCache();
 
 
+    app.use('/cosm-feeds', function(req, res) {
+        var path = req.url.split('?')[0].substr(1);
+        return res.end(cache[path] || {});
+    });
+ 
 
-    var proxy = function (path) {
-        return function (req, res) {
-            var real_url = path + req.url.replace(/^\//, '');
-            var requrl = url.parse(real_url);
-
-            if (cache.has(requrl.pathname, 180))
-                return cache.serve(requrl.pathname, res);
-            else 
-                cache.serve(requrl.pathname, res);
-
-            requrl.method = req.method;
-            requrl.headers = req.headers;
-            requrl.headers.host = requrl.host;
-            var preq = http.request(requrl, function (pres) {
-                console.log(req.method, real_url, "OK");
-                //res.writeHead(pres.statusCode, "", pres.headers);
-                //pres.pipe(res);
-                cache.add(requrl.pathname, pres);
-            });
-            preq.on('error', function (err) {
-                console.log(req.method, real_url, "FAIL:", err);
-                res.on('error', function() { });
-                try { res.end("" + err, 500); } catch (e) { }
-            });
-            if (~['post','put'].indexOf(req.method.toLowerCase())) req.pipe(preq);
-            else preq.end();
-
-        };
-    };
-
-    app.use('/cosm-feeds', proxy('http://api.cosm.com/v2/feeds/'));
 };

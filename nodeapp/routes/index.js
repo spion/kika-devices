@@ -12,6 +12,10 @@ module.exports = function (app) {
     app.get('/cosm', function(req, res) {
         res.render('cosm');
     });
+    app.get('/xively', function(req, res) {
+        res.render('cosm');
+    });
+ 
     app.get('/', function (req, res) {
         if (config.baseUrl.indexOf(req.headers.host) < 0) {
             res.redirect(config.baseUrl);
