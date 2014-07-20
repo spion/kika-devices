@@ -26,7 +26,6 @@ app.configure(function(){
 	app.use(express.cookieParser());
 	app.use(express.session({ secret: config.sessionSecret }));
 
-	
 	var bodyParser = express.bodyParser();
 	app.use(function(req, res, next) {
 		var ctype = req.header('content-type');
@@ -48,7 +47,6 @@ app.configure(function(){
 		}
 	});
 
-	
 	app.use(express.methodOverride());
 
 	app.use(passport.initialize());
@@ -57,7 +55,7 @@ app.configure(function(){
     app.use(function(req, res, next) {
         res.setHeader('Access-Control-Allow-Origin', 'http://api.cosm.com');
         next();
-    });    
+    });
 
     app.use('/public', express.static(__dirname + '/public'));
 	app.use(app.router);
@@ -87,38 +85,12 @@ for (var k = 0; k < files.length; ++k) {
 
 var hPort = process.env.PORT || 8080;
 
-app.listen(hPort, function () {
-    console.log("Express server in %s mode", app.settings.env);
-});
 
-// 103 fetcher, disabled.
-
-/*
-setInterval(function () {
-    http.get({
-        host:'radio.spodeli.org',
-        port:80,
-        path:'/listeners.xsl?mount=/103.ogg'
-    }, function (res) {
-        //console.log('STATUS: ' + res.statusCode);
-        //console.log('HEADERS: ' + JSON.stringify(res.headers));
-        res.setEncoding('utf8');
-        var data = [];
-        res.on('data', function (chunk) {
-            data.push(chunk);
-        });
-        res.on('end', function () {
-            var cnt = parseInt(data.join(''), 10)
-
-            var db = mongodb();
-            var doc = {
-                value:cnt - 1,
-                type:'103_listeners',
-                time:new Date().getTime()
-            };
-            console.log(doc)
-            db.updates.save(doc);
-        })
+if (process.env.NODE_ENV != 'test') {
+    app.listen(hPort, function () {
+        console.log("Express server in %s mode", app.settings.env);
     });
-}, 5 * 60000);
-*/
+}
+
+module.exports = app;
+

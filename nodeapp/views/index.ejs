@@ -3,6 +3,8 @@
 <head>
     <title>Уреди во Хаклаб Кика</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, target-densityDpi=medium-dpi">
+    <meta content='True' name='HandheldFriendly'>
     <style type="text/css">
         body {
             font-family: Verdana;
@@ -61,6 +63,7 @@
             position:relative;
             float:left;
             margin-right:2em;
+            margin-bottom: 1em;
             padding: 0.7em 0.5em;
             background-color: #EEC;
             width: 9.5em;
@@ -86,7 +89,7 @@
     Fork on GitHub
 </a>
 
-<div style="width:620px; margin:auto;">
+<div style="max-width:620px; margin:auto;">
     <h1>Уреди во Хаклаб Кика</h1>
 
     <h2>Моментално има <b id="count">??</b> уред<span id="plural">и</span> на мрежата во хаклаб.</h2>
@@ -95,7 +98,7 @@
 
     <p>Историја на присутни</p>
 
-    <div style="width:600px; height:150px;" id="plot">
+    <div style="max-width:600px; height:150px;" id="plot">
     </div>
 
     <p>Најавени присутни:</p>
@@ -115,7 +118,7 @@
    </div>
 
     <p>Историја на температури</p>
-    <div style="width:600px; height:250px;" id="temps">
+    <div style="max-width:600px; height:250px;" id="temps">
     </div>
 
     <p style="clear:both; padding-top:0.5em;">Сакаш да учествуваш во листата на присутни? 
@@ -126,7 +129,7 @@
 </div>
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script type="text/javascript" src="http://people.iola.dk/olau/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/public/js/jquery.flot.js"></script>
 <script type="text/javascript" src="/public/js/index.js"></script>
 </body>
 </html>
