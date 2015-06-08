@@ -56,8 +56,7 @@ module.exports = function(app) {
 
     app.use('/cosm-feeds', function(req, res) {
         var path = req.url.split('?')[0].substr(1);
+        res.contentType('application/json');
         return res.end(cache[path] || {});
     });
- 
-
 };
