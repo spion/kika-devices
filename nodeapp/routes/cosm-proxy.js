@@ -59,4 +59,25 @@ module.exports = function(app) {
         res.contentType('application/json');
         return res.end(cache[path] || {});
     });
+ 
+    app.get('/space.json', function(req, res) {
+        // http://spaceapi.net/documentation
+        var path = '86779/datastreams/hacklab_status'
+        var hacklab_status = JSON.parse(cache[path])
+        var space = {
+            "api": "0.13",
+            "space": "Hacklab Kika",
+            "url": "http://b10g.spodeli.org/",
+            "location": {
+                "address": "8, Vasil Stefanovski, Kapishtec, Skopje, Macedonia",
+                "lon": 41.9962347,
+                "lat": 21.4183671,
+            },
+            "state": {
+                'open': hacklab_status.current_value === '1'
+            }
+        }
+        res.contentType('application/json');
+        return res.end(JSON.stringify(space))
+    });
 };
