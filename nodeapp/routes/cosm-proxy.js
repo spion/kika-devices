@@ -29,7 +29,7 @@ module.exports = function(app) {
                 params: {start: yesterday}
             },{
                 url: '64655',
-                params: {start: yesterday, limit:300}
+                params: {start: yesterday, limit:600}
             }];
         var urls = feeds.map(function(f) {
             return {
