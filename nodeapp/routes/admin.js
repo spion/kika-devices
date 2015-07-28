@@ -1,7 +1,7 @@
 var mongodb = require('../models/db.js'),
     auth = require('../models/auth.js');
 
-twitterAdmin = require('../models/twitter-admin.js');
+var twitterAdmin = require('../models/twitter-admin.js');
 
 module.exports = function (app) {
     app.get('/admin/twitter-test', auth.admin, function (req, res) {
@@ -29,17 +29,4 @@ module.exports = function (app) {
         });
     });
 
-    app.get('/admin/migrate', auth.admin, function (req, res) {
-        var hq = mongodb(process.env.MONGOHQ_URL);
-        var lab = mongodb(process.env.MONGOLAB_URI);
-        var tables = ['counters', 'users', 'updates', 'statuses'];
-        for (var i = 0; i < tables.length; ++i) {
-            (function (t) {
-                hq[t].find().toArray(function (err, arr) {
-                    for (var k = 0; k < arr.length; ++k) lab[t].save(arr[k]);
-                });
-            }(tables[i]));
-
-        }
-    });
 };

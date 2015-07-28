@@ -11,7 +11,7 @@ module.exports = function(app) {
         for (var key in obj) if (obj.hasOwnProperty(key))
             str.push(key + '=' + obj[key]);
         var jstr = str.join('&');
-        return jstr.length ? '?' + jstr : '';    
+        return jstr.length ? '?' + jstr : '';
     }
 
     function urlify(base, subpath, params) {
@@ -25,13 +25,13 @@ module.exports = function(app) {
     function updateCache() {
         var yesterday = new Date(Date.now() - 1000 * 86400).toISOString();
         var feeds = [{
-                url:'86779/datastreams/hacklab_status', 
-                params: {start: yesterday} 
+                url:'86779/datastreams/hacklab_status',
+                params: {start: yesterday}
             },{
-                url: '64655', 
-                params: {start: yesterday, limit:300}
+                url: '64655',
+                params: {start: yesterday, limit:600}
             }];
-        var urls = feeds.map(function(f) { 
+        var urls = feeds.map(function(f) {
             return {
                 url: urlify('http://api.cosm.com/v2/feeds/', f.url, f.params),
                 headers: {
@@ -39,19 +39,21 @@ module.exports = function(app) {
                 }
             };
         });
-        async.map(urls, function(item, cb) { 
+        async.map(urls, function(item, cb) {
             request(item, function(err, res, body) {
-                cb(err, body);
+                if (err) return cb(err);
+                if (res.statusCode !== 200)
+                    return cb(new Error("http code " + res.statusCode + " for " + JSON.stringify(item)));
+                cb(null, body);
             });
         }, function(err, results) {
-            if (err) throw err;
-            for (var k = 0; k < results.length; ++k) {
+            if (err) return console.log("Cache update failed.", err.stack);
+            for (var k = 0; k < results.length; ++k)
                 cache[feeds[k].url] = results[k];
-            }
         });
     }
     setInterval(updateCache, 300 * 1000);
-    updateCache();
+    setTimeout(updateCache, 1000);
 
 
     app.use('/cosm-feeds', function(req, res) {
