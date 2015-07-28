@@ -17,7 +17,7 @@
   },
   "engines": {
     "node": "0.8.x",
-    "npm": "1.1.x"
+    "npm": "1.x"
   },
   "devDependencies": {
     "middleware-tester": "^0.3.0",
